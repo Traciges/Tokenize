@@ -12,17 +12,18 @@ import {
   IonAlert,
   IonCard,
 } from '@ionic/react';
-import { add, play, settings, layersOutline, imageOutline, flash } from 'ionicons/icons';
+import { add, play, settings, layersOutline, imageOutline, flash, trashOutline } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
 import { manaGradient } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
 import { useHistory } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { decks, addDeck, updateDeckArt, initQuickstart } = useAppStore();
+  const { decks, addDeck, updateDeckArt, initQuickstart, removeDeck } = useAppStore();
   const [showAddAlert, setShowAddAlert] = useState(false);
   const [showDeckArtSelector, setShowDeckArtSelector] = useState(false);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
+  const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
   const [isFabOpen, setIsFabOpen] = useState(false);
   const history = useHistory();
 
@@ -93,6 +94,18 @@ const Home: React.FC = () => {
                       {deck.modifiers.length} {deck.modifiers.length === 1 ? 'Card' : 'Cards'}
                     </p>
                     <div className="deck-actions" onClick={(e) => e.stopPropagation()}>
+                      <IonButton
+                        size="small"
+                        fill="outline"
+                        color="danger"
+                        className="deck-action-delete"
+                        onClick={(e) => {
+                          (e.currentTarget as HTMLIonButtonElement).blur();
+                          setDeckToDelete(deck.id);
+                        }}
+                      >
+                        <IonIcon icon={trashOutline} slot="icon-only" />
+                      </IonButton>
                       <IonButton
                         size="small"
                         fill="outline"
@@ -201,6 +214,25 @@ const Home: React.FC = () => {
               text: 'Add',
               handler: (data) => {
                 if (data.name) addDeck(data.name);
+              },
+            },
+          ]}
+        />
+
+        <IonAlert
+          isOpen={!!deckToDelete}
+          onDidDismiss={() => setDeckToDelete(null)}
+          header="Delete Deck"
+          message="Are you sure you want to delete this deck? This action cannot be undone."
+          buttons={[
+            { text: 'Cancel', role: 'cancel' },
+            {
+              text: 'Delete',
+              role: 'destructive',
+              handler: () => {
+                if (deckToDelete) {
+                  removeDeck(deckToDelete);
+                }
               },
             },
           ]}

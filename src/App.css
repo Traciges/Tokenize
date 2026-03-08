@@ -75,7 +75,7 @@ ion-content::part(background) {
   padding: 16px 14px;
   display: flex;
   flex-direction: column;
-  min-height: 120px;
+  min-height: 160px;
   position: relative;
 }
 
@@ -129,6 +129,11 @@ ion-content::part(background) {
 .deck-card .deck-action-settings {
   --color: var(--mtg-text-secondary);
   --border-color: var(--mtg-border);
+}
+
+.deck-card .deck-action-delete {
+  --color: var(--ion-color-danger);
+  --border-color: var(--ion-color-danger);
 }
 
 /* Empty state */
