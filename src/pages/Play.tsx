@@ -32,6 +32,16 @@ import { getCardBgStyle, getCategoryClass } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
 import { CATEGORIES, QUICKSTART_ID } from '../types';
 import type { Category, ModifierCard, MathType } from '../types';
+import { Users, CircleDot, Flame, BookOpen, Swords, DoorOpen } from 'lucide-react';
+
+const CATEGORY_ICONS: Record<Category, React.FC<{ size?: number }>> = {
+  'Tokens': Users,
+  'Counters': CircleDot,
+  'Damage': Flame,
+  'Card Draw': BookOpen,
+  'Attack Triggers': Swords,
+  'ETB': DoorOpen,
+};
 
 interface MathStep {
   id: string;
@@ -192,21 +202,25 @@ const Play: React.FC = () => {
         <div className="action-grid">
           <IonGrid>
             <IonRow>
-              {CATEGORIES.map((cat) => (
-                <IonCol size="6" key={cat}>
-                  <IonButton
-                    expand="block"
-                    fill="outline"
-                    className={getCategoryClass('action-btn', cat)}
-                    onClick={(e) => {
-                      (e.currentTarget as HTMLIonButtonElement).blur();
-                      handleActionClick(cat);
-                    }}
-                  >
-                    {cat}
-                  </IonButton>
-                </IonCol>
-              ))}
+              {CATEGORIES.map((cat) => {
+                const Icon = CATEGORY_ICONS[cat];
+                return (
+                  <IonCol size="6" key={cat}>
+                    <IonButton
+                      expand="block"
+                      fill="outline"
+                      className={getCategoryClass('action-btn', cat)}
+                      onClick={(e) => {
+                        (e.currentTarget as HTMLIonButtonElement).blur();
+                        handleActionClick(cat);
+                      }}
+                    >
+                      <Icon size={16} />
+                      <span style={{ marginLeft: 6 }}>{cat}</span>
+                    </IonButton>
+                  </IonCol>
+                );
+              })}
             </IonRow>
           </IonGrid>
         </div>
