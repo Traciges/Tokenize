@@ -1,0 +1,118 @@
+
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { Preferences } from '@capacitor/preferences';
+import type { AppState, Deck, ModifierCard } from '../types';
+
+interface StoreState extends AppState {
+  addDeck: (name: string) => void;
+  removeDeck: (id: string) => void;
+  setActiveDeck: (id: string | null) => void;
+  addModifierToDeck: (deckId: string, card: Omit<ModifierCard, 'id'>) => void;
+  updateModifierInDeck: (deckId: string, cardId: string, card: Partial<ModifierCard>) => void;
+  removeModifierFromDeck: (deckId: string, cardId: string) => void;
+  updateCardCount: (cardId: string, delta: number) => void;
+  clearActiveBoard: () => void;
+  updateDeckArt: (deckId: string, artUrl?: string, colors?: string[]) => void;
+}
+
+const storage = {
+  getItem: async (name: string): Promise<string | null> => {
+    const { value } = await Preferences.get({ key: name });
+    return value;
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await Preferences.set({ key: name, value });
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await Preferences.remove({ key: name });
+  },
+};
+
+export const useAppStore = create<StoreState>()(
+  persist(
+    (set) => ({
+      decks: [],
+      activeDeckId: null,
+      activeBoard: {},
+
+      addDeck: (name) =>
+        set((state) => ({
+          decks: [...state.decks, { id: crypto.randomUUID(), name, modifiers: [] }],
+        })),
+
+      removeDeck: (id) =>
+        set((state) => ({
+          decks: state.decks.filter((d) => d.id !== id),
+          activeDeckId: state.activeDeckId === id ? null : state.activeDeckId,
+        })),
+
+      setActiveDeck: (id) =>
+        set(() => ({
+          activeDeckId: id,
+          activeBoard: {}, // Reset board when switching decks
+        })),
+
+      addModifierToDeck: (deckId, card) =>
+        set((state) => ({
+          decks: state.decks.map((d) =>
+            d.id === deckId
+              ? { ...d, modifiers: [...d.modifiers, { ...card, id: crypto.randomUUID() }] }
+              : d
+          ),
+        })),
+
+      updateModifierInDeck: (deckId, cardId, card) =>
+        set((state) => ({
+          decks: state.decks.map((d) =>
+            d.id === deckId
+              ? {
+                  ...d,
+                  modifiers: d.modifiers.map((m) =>
+                    m.id === cardId ? { ...m, ...card } : m
+                  ),
+                }
+              : d
+          ),
+        })),
+
+      removeModifierFromDeck: (deckId, cardId) =>
+        set((state) => ({
+          decks: state.decks.map((d) =>
+            d.id === deckId
+              ? { ...d, modifiers: d.modifiers.filter((c) => c.id !== cardId) }
+              : d
+          ),
+          // Also remove from active board if it was there
+          activeBoard: Object.fromEntries(
+             Object.entries(state.activeBoard).filter(([id]) => id !== cardId)
+          )
+        })),
+
+      updateCardCount: (cardId, delta) =>
+        set((state) => {
+          const currentCount = state.activeBoard[cardId] || 0;
+          const nextCount = Math.max(0, currentCount + delta);
+          return {
+            activeBoard: { ...state.activeBoard, [cardId]: nextCount },
+          };
+        }),
+
+      clearActiveBoard: () =>
+        set(() => ({
+          activeBoard: {},
+        })),
+
+      updateDeckArt: (deckId, artUrl, colors) =>
+        set((state) => ({
+          decks: state.decks.map((d) =>
+            d.id === deckId ? { ...d, artUrl, colors } : d
+          ),
+        })),
+    }),
+    {
+      name: 'mtg-toolbox-storage',
+      storage: createJSONStorage(() => storage),
+    }
+  )
+);

@@ -1,0 +1,266 @@
+
+/* Ionic Variables and Theming — MTG Board State Calculator
+   "Sleek Fantasy Tech" Dark Mode Design System
+   ============================================= */
+
+/* Google Font: Cinzel for fantasy headings */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* ── MTG Design Tokens ──────────────────────────────────── */
+:root {
+  /* Backgrounds — Deep Slate / Charcoal */
+  --mtg-bg-deepest: #080b10;
+  --mtg-bg-deep: #0d1117;
+  --mtg-bg-surface: #161b22;
+  --mtg-bg-elevated: #1c2333;
+  --mtg-bg-card: #1a2030;
+  --mtg-bg-hover: #242d3d;
+
+  /* Mythic Gold — Primary Actions */
+  --mtg-gold: #d4a843;
+  --mtg-gold-bright: #e8b931;
+  --mtg-gold-dim: #a07c2e;
+  --mtg-gold-glow: rgba(212, 168, 67, 0.25);
+  --mtg-gold-rgb: 212, 168, 67;
+
+  /* MTG Mana Colors (Muted) */
+  --mtg-red: #c45c5c;
+  --mtg-red-dim: rgba(196, 92, 92, 0.15);
+  --mtg-blue: #4a8fbf;
+  --mtg-blue-dim: rgba(74, 143, 191, 0.15);
+  --mtg-green: #5a9e6f;
+  --mtg-green-dim: rgba(90, 158, 111, 0.15);
+  --mtg-white: #d4cfc0;
+  --mtg-purple: #8b6ec0;
+  --mtg-purple-dim: rgba(139, 110, 192, 0.15);
+
+  /* Text */
+  --mtg-text-primary: #e6edf3;
+  --mtg-text-secondary: #8b949e;
+  --mtg-text-muted: #555d68;
+
+  /* Borders & Dividers */
+  --mtg-border: rgba(139, 148, 158, 0.12);
+  --mtg-border-card: rgba(212, 168, 67, 0.08);
+  --mtg-divider: rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --mtg-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 1px rgba(212, 168, 67, 0.06);
+  --mtg-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 1px rgba(212, 168, 67, 0.1);
+  --mtg-shadow-glow: 0 0 20px rgba(212, 168, 67, 0.15);
+
+  /* Radii */
+  --mtg-radius-sm: 6px;
+  --mtg-radius-md: 10px;
+  --mtg-radius-lg: 14px;
+  --mtg-radius-xl: 20px;
+
+  /* Typography */
+  --mtg-font-display: 'Cinzel', 'Georgia', serif;
+  --mtg-font-body: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── FORCE DARK MODE (always) ───────────────────────────── */
+
+/** Ionic color overrides — Mythic Gold primary **/
+:root {
+  --ion-color-primary: var(--mtg-gold);
+  --ion-color-primary-rgb: var(--mtg-gold-rgb);
+  --ion-color-primary-contrast: #0d1117;
+  --ion-color-primary-contrast-rgb: 13, 17, 23;
+  --ion-color-primary-shade: var(--mtg-gold-dim);
+  --ion-color-primary-tint: var(--mtg-gold-bright);
+
+  --ion-color-secondary: var(--mtg-blue);
+  --ion-color-secondary-rgb: 74, 143, 191;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #3d7aa6;
+  --ion-color-secondary-tint: #5e9ec9;
+
+  --ion-color-tertiary: var(--mtg-purple);
+  --ion-color-tertiary-rgb: 139, 110, 192;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #7a60ab;
+  --ion-color-tertiary-tint: #9a80cc;
+
+  --ion-color-success: var(--mtg-green);
+  --ion-color-success-rgb: 90, 158, 111;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #4e8a61;
+  --ion-color-success-tint: #6db07f;
+
+  --ion-color-warning: #e8b931;
+  --ion-color-warning-rgb: 232, 185, 49;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #cca22b;
+  --ion-color-warning-tint: #eac246;
+
+  --ion-color-danger: var(--mtg-red);
+  --ion-color-danger-rgb: 196, 92, 92;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #ad5050;
+  --ion-color-danger-tint: #cf6d6d;
+
+  --ion-color-dark: var(--mtg-text-primary);
+  --ion-color-dark-rgb: 230, 237, 243;
+  --ion-color-dark-contrast: #000000;
+  --ion-color-dark-contrast-rgb: 0, 0, 0;
+  --ion-color-dark-shade: #c9d1d9;
+  --ion-color-dark-tint: #f0f6fc;
+
+  --ion-color-medium: var(--mtg-text-secondary);
+  --ion-color-medium-rgb: 139, 148, 158;
+  --ion-color-medium-contrast: #000000;
+  --ion-color-medium-contrast-rgb: 0, 0, 0;
+  --ion-color-medium-shade: #7a828c;
+  --ion-color-medium-tint: #9ca5ae;
+
+  --ion-color-light: var(--mtg-bg-elevated);
+  --ion-color-light-rgb: 28, 35, 51;
+  --ion-color-light-contrast: #ffffff;
+  --ion-color-light-contrast-rgb: 255, 255, 255;
+  --ion-color-light-shade: #181e2d;
+  --ion-color-light-tint: #263045;
+}
+
+/* Force dark background on all platforms */
+body,
+.ios body,
+.md body {
+  --ion-background-color: var(--mtg-bg-deep);
+  --ion-background-color-rgb: 13, 17, 23;
+
+  --ion-text-color: var(--mtg-text-primary);
+  --ion-text-color-rgb: 230, 237, 243;
+
+  --ion-border-color: var(--mtg-border);
+
+  --ion-toolbar-background: var(--mtg-bg-surface);
+  --ion-tab-bar-background: var(--mtg-bg-surface);
+  --ion-item-background: var(--mtg-bg-surface);
+  --ion-card-background: var(--mtg-bg-card);
+
+  --ion-color-step-50: #111820;
+  --ion-color-step-100: #161d27;
+  --ion-color-step-150: #1c232e;
+  --ion-color-step-200: #212935;
+  --ion-color-step-250: #272f3c;
+  --ion-color-step-300: #2d3643;
+  --ion-color-step-350: #333c4a;
+  --ion-color-step-400: #394251;
+  --ion-color-step-450: #3f4958;
+  --ion-color-step-500: #454f5f;
+  --ion-color-step-550: #4b5566;
+  --ion-color-step-600: #515c6d;
+  --ion-color-step-650: #576274;
+  --ion-color-step-700: #5d687b;
+  --ion-color-step-750: #636f82;
+  --ion-color-step-800: #697589;
+  --ion-color-step-850: #6f7b90;
+  --ion-color-step-900: #758297;
+  --ion-color-step-950: #7b889e;
+
+  font-family: var(--mtg-font-body);
+  background: var(--mtg-bg-deepest);
+}
+
+/* Force dark on modals */
+.ios ion-modal,
+.md ion-modal,
+ion-modal {
+  --ion-background-color: var(--mtg-bg-deep);
+  --ion-toolbar-background: var(--mtg-bg-surface);
+  --ion-item-background: var(--mtg-bg-surface);
+}
+
+/* ── Global Typography ──────────────────────────────────── */
+
+ion-title {
+  font-family: var(--mtg-font-display);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--mtg-text-primary);
+}
+
+ion-toolbar {
+  --border-color: var(--mtg-divider);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--mtg-font-display);
+  color: var(--mtg-text-primary);
+}
+
+ion-item h2 {
+  font-family: var(--mtg-font-body);
+  font-weight: 600;
+}
+
+ion-item p {
+  color: var(--mtg-text-secondary) !important;
+}
+
+/* ── Global Component Overrides ─────────────────────────── */
+
+/* FAB — Mythic Gold */
+ion-fab-button {
+  --background: var(--mtg-gold);
+  --color: var(--mtg-bg-deepest);
+  --box-shadow: var(--mtg-shadow-glow);
+  --background-activated: var(--mtg-gold-bright);
+  --background-hover: var(--mtg-gold-bright);
+}
+
+/* Cards — Subtle card shadows */
+ion-card {
+  --background: var(--mtg-bg-card);
+  border: 1px solid var(--mtg-border-card);
+  box-shadow: var(--mtg-shadow-card);
+  border-radius: var(--mtg-radius-lg);
+}
+
+/* Items */
+ion-item {
+  --border-color: var(--mtg-divider);
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+/* Lists */
+ion-list {
+  background: transparent;
+  --ion-item-background: transparent;
+}
+
+/* Chips */
+ion-chip {
+  --background: var(--mtg-bg-hover);
+  border: 1px solid var(--mtg-border);
+  font-family: var(--mtg-font-body);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Alert/Modal Buttons */
+ion-alert {
+  --background: var(--mtg-bg-elevated);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mtg-text-muted);
+  border-radius: 4px;
+}
+
+/* Remove the prefers-color-scheme media query — always dark */
