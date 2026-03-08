@@ -956,3 +956,86 @@ ion-item-option[color="danger"] {
   --color: var(--mtg-blue);
   --border-color: rgba(74, 143, 191, 0.3);
 }
+
+/* ── Custom Animated FAB ─────────────────────────────── */
+
+.custom-fab-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 998;
+}
+
+.custom-fab-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.custom-fab-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.custom-fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  pointer-events: none;
+}
+
+.custom-fab-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-fab-container.open .custom-fab-menu {
+  pointer-events: auto;
+}
+
+.custom-fab-container.open .custom-fab-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.custom-fab-container.open .custom-fab-item:nth-child(2) {
+  transition-delay: 0.05s;
+}
+.custom-fab-container.open .custom-fab-item:nth-child(1) {
+  transition-delay: 0.1s;
+}
+
+.custom-fab-label {
+  background: var(--mtg-bg-card, #1c2128);
+  color: var(--mtg-text-primary, #ffffff);
+  padding: 6px 12px;
+  border-radius: var(--mtg-radius-sm, 6px);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.custom-fab-main-btn {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-fab-container.open .custom-fab-main-btn {
+  transform: rotate(45deg);
+}

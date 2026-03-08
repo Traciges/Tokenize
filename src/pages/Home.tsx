@@ -8,23 +8,26 @@ import {
   IonToolbar,
   IonButton,
   IonIcon,
-  IonFab,
   IonFabButton,
   IonAlert,
   IonCard,
 } from '@ionic/react';
-import { add, play, settings, layersOutline, imageOutline } from 'ionicons/icons';
+import { add, play, settings, layersOutline, imageOutline, flash } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
 import { manaGradient } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
 import { useHistory } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { decks, addDeck, updateDeckArt } = useAppStore();
+  const { decks, addDeck, updateDeckArt, initQuickstart } = useAppStore();
   const [showAddAlert, setShowAddAlert] = useState(false);
   const [showDeckArtSelector, setShowDeckArtSelector] = useState(false);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
+  const [isFabOpen, setIsFabOpen] = useState(false);
   const history = useHistory();
+
+  // Filter out the ephemeral quickstart deck from the list if it happens to be in memory
+  const displayDecks = decks.filter(d => d.id !== 'quickstart');
 
   const getDeckBgStyle = (deck: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined => {
     if (deck.artUrl) {
@@ -48,6 +51,17 @@ const Home: React.FC = () => {
     setEditingDeckId(null);
   };
 
+  const handleQuickstart = () => {
+    setIsFabOpen(false);
+    initQuickstart();
+    history.push('/play/quickstart');
+  };
+
+  const handleNewDeck = () => {
+    setIsFabOpen(false);
+    setShowAddAlert(true);
+  };
+
   return (
     <IonPage>
       <IonHeader className="mtg-header">
@@ -59,9 +73,9 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {decks.length > 0 ? (
+        {displayDecks.length > 0 ? (
           <div className="deck-grid">
-            {decks.map((deck) => {
+            {displayDecks.map((deck) => {
               const hasArt = !!(deck.artUrl || (deck.colors && deck.colors.length > 0));
               return (
                 <IonCard
@@ -127,11 +141,48 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={() => setShowAddAlert(true)}>
-            <IonIcon icon={add} />
+        {/* ── Custom Animated FAB ──────────────────────── */}
+        <div 
+          className={`custom-fab-backdrop ${isFabOpen ? 'open' : ''}`} 
+          onClick={() => setIsFabOpen(false)} 
+        />
+        
+        <div className={`custom-fab-container ${isFabOpen ? 'open' : ''}`}>
+          <div className="custom-fab-menu">
+            <div className="custom-fab-item">
+              <span className="custom-fab-label" onClick={handleQuickstart}>
+                Quickstart
+              </span>
+              <IonFabButton 
+                className="custom-fab-sub-btn" 
+                onClick={handleQuickstart}
+                size="small"
+              >
+                <IonIcon icon={flash} color="light" />
+              </IonFabButton>
+            </div>
+            
+            <div className="custom-fab-item">
+              <span className="custom-fab-label" onClick={handleNewDeck}>
+                New Deck
+              </span>
+              <IonFabButton 
+                className="custom-fab-sub-btn" 
+                onClick={handleNewDeck}
+                size="small"
+              >
+                <IonIcon icon={layersOutline} color="light" />
+              </IonFabButton>
+            </div>
+          </div>
+          
+          <IonFabButton 
+            className="custom-fab-main-btn" 
+            onClick={() => setIsFabOpen(!isFabOpen)}
+          >
+            <IonIcon icon={add} style={{ fontSize: '32px' }} />
           </IonFabButton>
-        </IonFab>
+        </div>
 
         <IonAlert
           isOpen={showAddAlert}
@@ -162,7 +213,7 @@ const Home: React.FC = () => {
             setShowDeckArtSelector(false);
             setEditingDeckId(null);
           }}
-          initialSearch={decks.find((d) => d.id === editingDeckId)?.name}
+          initialSearch={displayDecks.find((d) => d.id === editingDeckId)?.name}
           onSelect={handleDeckArtSelect}
         />
       </IonContent>

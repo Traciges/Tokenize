@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   IonContent,
@@ -20,13 +19,28 @@ import {
   IonReorderGroup,
   IonReorder,
   IonFooter,
+  IonFab,
+  IonFabButton,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/react';
 import type { ItemReorderEventDetail } from '@ionic/react';
 import { useParams } from 'react-router-dom';
-import { add, remove, flash, refresh } from 'ionicons/icons';
+import { add, remove, flash, refresh, imageOutline, closeCircle } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
 import { manaGradient } from '../utils/manaColors';
-import type { Category, ModifierCard } from '../types';
+import CardArtSelector from '../components/CardArtSelector';
+import type { Category, ModifierCard, MathType } from '../types';
+
+const categories: Category[] = [
+  'Tokens',
+  'Counters',
+  'Damage',
+  'Card Draw',
+  'Attack Triggers',
+  'ETB',
+];
 
 const getCategoryBtnClass = (cat: Category): string => {
   const map: Record<Category, string> = {
@@ -58,7 +72,7 @@ const getCardBgStyle = (card: { artUrl?: string; colors?: string[] }): React.CSS
 const Play: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const deck = useAppStore((state) => state.decks.find((d) => d.id === id));
-  const { activeBoard, updateCardCount, clearActiveBoard } = useAppStore();
+  const { activeBoard, updateCardCount, clearActiveBoard, addModifierToDeck } = useAppStore();
 
   const [calculationModal, setCalculationModal] = useState<{
     isOpen: boolean;
@@ -67,6 +81,18 @@ const Play: React.FC = () => {
   }>({ isOpen: false, category: null, baseValue: 0 });
 
   const [activeEffects, setActiveEffects] = useState<ModifierCard[]>([]);
+
+  // Add Card State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showArtSelector, setShowArtSelector] = useState(false);
+  const [cardData, setCardData] = useState({
+    name: '',
+    mathType: 'multiplier' as MathType,
+    value: 2,
+    categories: [] as Category[],
+    artUrl: undefined as string | undefined,
+    colors: undefined as string[] | undefined,
+  });
 
   if (!deck) return <IonPage><IonContent>Deck not found</IonContent></IonPage>;
 
@@ -116,14 +142,27 @@ const Play: React.FC = () => {
     setActiveEffects(optimized);
   };
 
-  const categories: Category[] = [
-    'Tokens',
-    'Counters',
-    'Damage',
-    'Card Draw',
-    'Attack Triggers',
-    'ETB',
-  ];
+  const handleOpenAdd = () => {
+    setCardData({ name: '', mathType: 'multiplier', value: 2, categories: [], artUrl: undefined, colors: undefined });
+    setShowAddModal(true);
+  };
+
+  const handleSaveCard = () => {
+    if (cardData.name && cardData.categories.length > 0) {
+      addModifierToDeck(deck.id, cardData);
+      setShowAddModal(false);
+    }
+  };
+
+  const handleArtSelect = (artUrl: string, colors: string[], cardName?: string) => {
+    setCardData({
+      ...cardData,
+      artUrl: artUrl || undefined,
+      colors: colors.length > 0 ? colors : undefined,
+      ...(cardName ? { name: cardName } : {}),
+    });
+    setShowArtSelector(false);
+  };
 
   return (
     <IonPage>
@@ -215,7 +254,112 @@ const Play: React.FC = () => {
             );
           })}
         </IonList>
+
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton onClick={handleOpenAdd}>
+            <IonIcon icon={add} />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
+
+      {/* ── Add Card Modal ─────────────────────── */}
+      <IonModal isOpen={showAddModal} onDidDismiss={() => setShowAddModal(false)}>
+        <IonHeader className="mtg-header">
+          <IonToolbar>
+            <IonTitle>Add Card</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={() => setShowAddModal(false)}>Cancel</IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding mtg-modal-form">
+          <IonItem>
+            <IonLabel position="stacked">Card Name</IonLabel>
+            <IonInput
+              value={cardData.name}
+              placeholder="Doubling Season"
+              onIonInput={(e) => setCardData({ ...cardData, name: e.detail.value! })}
+            />
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">Math Type</IonLabel>
+            <IonSelect
+              value={cardData.mathType}
+              onIonChange={(e) => setCardData({ ...cardData, mathType: e.detail.value })}
+            >
+              <IonSelectOption value="multiplier">Multiplier (x)</IonSelectOption>
+              <IonSelectOption value="additive">Additive (+)</IonSelectOption>
+            </IonSelect>
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">Value</IonLabel>
+            <IonInput
+              type="number"
+              value={cardData.value ?? 0}
+              onIonInput={(e) => {
+                const val = parseInt(e.detail.value!);
+                setCardData({ ...cardData, value: isNaN(val) ? 0 : val });
+              }}
+            />
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">Categories</IonLabel>
+            <IonSelect
+              multiple={true}
+              value={cardData.categories}
+              onIonChange={(e) => setCardData({ ...cardData, categories: e.detail.value })}
+            >
+              {categories.map((cat) => (
+                <IonSelectOption key={cat} value={cat}>
+                  {cat}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
+
+          {/* Art Preview (if set) */}
+          {cardData.artUrl && (
+            <div className="art-preview">
+              <img src={cardData.artUrl} alt="Card art" />
+              <IonButton
+                fill="clear"
+                size="small"
+                className="art-preview-remove"
+                onClick={() => setCardData({ ...cardData, artUrl: undefined, colors: undefined })}
+              >
+                <IonIcon icon={closeCircle} slot="icon-only" />
+              </IonButton>
+            </div>
+          )}
+
+          {/* Search Art Button */}
+          <IonButton
+            expand="block"
+            fill="outline"
+            className="ion-margin-top search-art-btn"
+            onClick={() => setShowArtSelector(true)}
+          >
+            <IonIcon icon={imageOutline} slot="start" />
+            {cardData.artUrl ? 'Change Art' : 'Search Art'}
+          </IonButton>
+
+          <IonButton
+            expand="block"
+            onClick={handleSaveCard}
+            className="ion-margin-top save-btn"
+          >
+            Add Card
+          </IonButton>
+        </IonContent>
+      </IonModal>
+
+      {/* ── Card Art Selector ───────────────────────── */}
+      <CardArtSelector
+        isOpen={showArtSelector}
+        onDismiss={() => setShowArtSelector(false)}
+        initialSearch={cardData.name}
+        onSelect={handleArtSelect}
+      />
 
       {/* ── Calculation Modal ─────────────────────────── */}
       <IonModal

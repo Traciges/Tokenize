@@ -2,10 +2,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Preferences } from '@capacitor/preferences';
-import type { AppState, Deck, ModifierCard } from '../types';
+import type { AppState, ModifierCard } from '../types';
 
 interface StoreState extends AppState {
   addDeck: (name: string) => void;
+  initQuickstart: () => void;
   removeDeck: (id: string) => void;
   setActiveDeck: (id: string | null) => void;
   addModifierToDeck: (deckId: string, card: Omit<ModifierCard, 'id'>) => void;
@@ -40,6 +41,19 @@ export const useAppStore = create<StoreState>()(
         set((state) => ({
           decks: [...state.decks, { id: crypto.randomUUID(), name, modifiers: [] }],
         })),
+
+      initQuickstart: () =>
+        set((state) => {
+          if (!state.decks.find((d) => d.id === 'quickstart')) {
+            return {
+              decks: [
+                ...state.decks,
+                { id: 'quickstart', name: 'Quickstart', modifiers: [] },
+              ],
+            };
+          }
+          return state;
+        }),
 
       removeDeck: (id) =>
         set((state) => ({
@@ -113,6 +127,12 @@ export const useAppStore = create<StoreState>()(
     {
       name: 'mtg-toolbox-storage',
       storage: createJSONStorage(() => storage),
+      partialize: (state) => ({
+        ...state,
+        decks: state.decks.filter((d) => d.id !== 'quickstart'),
+        activeDeckId: state.activeDeckId === 'quickstart' ? null : state.activeDeckId,
+        activeBoard: state.activeDeckId === 'quickstart' ? {} : state.activeBoard,
+      }),
     }
   )
 );
