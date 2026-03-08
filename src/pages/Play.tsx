@@ -129,6 +129,35 @@ const Play: React.FC = () => {
     return current;
   };
 
+  interface MathStep {
+    id: string;
+    cardName: string;
+    prevValue: number;
+    operator: string;
+    modifierValue: number;
+    newValue: number;
+    color?: string;
+  }
+
+  const generateMathSteps = (base: number, effects: ModifierCard[]): MathStep[] => {
+    let current = base;
+    return effects.map((eff) => {
+      const prevValue = current;
+      const isMultiplier = eff.mathType === 'multiplier';
+      const operator = isMultiplier ? 'x' : '+';
+      current = isMultiplier ? current * eff.value : current + eff.value;
+      return {
+        id: eff.id,
+        cardName: eff.name,
+        prevValue,
+        operator,
+        modifierValue: eff.value,
+        newValue: current,
+        color: eff.colors?.[0], // using first color if available
+      };
+    });
+  };
+
   const handleReorder = (event: CustomEvent<ItemReorderEventDetail>) => {
     const newEffects = [...activeEffects];
     const item = newEffects.splice(event.detail.from, 1)[0];
@@ -275,6 +304,31 @@ const Play: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding mtg-modal-form">
+          <div className="art-thumbnail-wrapper">
+            <div className={`art-thumbnail-box ${cardData.artUrl ? 'has-art' : ''}`} onClick={() => setShowArtSelector(true)}>
+              {cardData.artUrl ? (
+                <>
+                  <img src={cardData.artUrl} alt="Card art" />
+                  <IonButton
+                    fill="clear"
+                    className="art-thumbnail-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCardData({ ...cardData, artUrl: undefined, colors: undefined });
+                    }}
+                  >
+                    <IonIcon icon={closeCircle} slot="icon-only" />
+                  </IonButton>
+                </>
+              ) : (
+                <>
+                  <IonIcon icon={imageOutline} />
+                  <span>Add Art</span>
+                </>
+              )}
+            </div>
+          </div>
+
           <IonItem>
             <IonLabel position="stacked">Card Name</IonLabel>
             <IonInput
@@ -319,32 +373,6 @@ const Play: React.FC = () => {
             </IonSelect>
           </IonItem>
 
-          {/* Art Preview (if set) */}
-          {cardData.artUrl && (
-            <div className="art-preview">
-              <img src={cardData.artUrl} alt="Card art" />
-              <IonButton
-                fill="clear"
-                size="small"
-                className="art-preview-remove"
-                onClick={() => setCardData({ ...cardData, artUrl: undefined, colors: undefined })}
-              >
-                <IonIcon icon={closeCircle} slot="icon-only" />
-              </IonButton>
-            </div>
-          )}
-
-          {/* Search Art Button */}
-          <IonButton
-            expand="block"
-            fill="outline"
-            className="ion-margin-top search-art-btn"
-            onClick={() => setShowArtSelector(true)}
-          >
-            <IonIcon icon={imageOutline} slot="start" />
-            {cardData.artUrl ? 'Change Art' : 'Search Art'}
-          </IonButton>
-
           <IonButton
             expand="block"
             onClick={handleSaveCard}
@@ -379,14 +407,6 @@ const Play: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding">
-          {/* Total Result */}
-          <div className="result-display">
-            <p className="result-label">Total Result</p>
-            <h1 className="result-value">
-              {calculateResult(calculationModal.baseValue, activeEffects)}
-            </h1>
-          </div>
-
           {/* Base Value */}
           <div className="base-value-section">
             <p className="base-label">Base Value</p>
@@ -459,6 +479,30 @@ const Play: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Math Breakdown */}
+          {activeEffects.length > 0 && (
+            <div className="math-breakdown-section">
+              <details className="math-details">
+                <summary className="math-summary">
+                  Show Math
+                </summary>
+                <div className="math-steps">
+                  {generateMathSteps(calculationModal.baseValue, activeEffects).map((step, idx) => (
+                    <div key={`${step.id}-${idx}`} className="math-step-row">
+                      <div className="math-step-indicator" style={step.color ? { backgroundColor: `#${step.color}` } : {}}></div>
+                      <div className="math-step-content">
+                        <span className="math-step-card-name">({step.cardName})</span>
+                        <span className="math-step-calc">
+                          {step.prevValue} {step.operator} {step.modifierValue} = <strong>{step.newValue}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          )}
         </IonContent>
 
         {/* Sticky Result Footer */}

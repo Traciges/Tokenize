@@ -211,6 +211,31 @@ const DeckDetail: React.FC = () => {
             </IonToolbar>
           </IonHeader>
           <IonContent className="ion-padding mtg-modal-form">
+            <div className="art-thumbnail-wrapper">
+              <div className={`art-thumbnail-box ${cardData.artUrl ? 'has-art' : ''}`} onClick={() => setShowArtSelector(true)}>
+                {cardData.artUrl ? (
+                  <>
+                    <img src={cardData.artUrl} alt="Card art" />
+                    <IonButton
+                      fill="clear"
+                      className="art-thumbnail-remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveArt();
+                      }}
+                    >
+                      <IonIcon icon={closeCircle} slot="icon-only" />
+                    </IonButton>
+                  </>
+                ) : (
+                  <>
+                    <IonIcon icon={imageOutline} />
+                    <span>Add Art</span>
+                  </>
+                )}
+              </div>
+            </div>
+
             <IonItem>
               <IonLabel position="stacked">Card Name</IonLabel>
               <IonInput
@@ -254,32 +279,6 @@ const DeckDetail: React.FC = () => {
                 ))}
               </IonSelect>
             </IonItem>
-
-            {/* Art Preview (if set) */}
-            {cardData.artUrl && (
-              <div className="art-preview">
-                <img src={cardData.artUrl} alt="Card art" />
-                <IonButton
-                  fill="clear"
-                  size="small"
-                  className="art-preview-remove"
-                  onClick={handleRemoveArt}
-                >
-                  <IonIcon icon={closeCircle} slot="icon-only" />
-                </IonButton>
-              </div>
-            )}
-
-            {/* Search Art Button */}
-            <IonButton
-              expand="block"
-              fill="outline"
-              className="ion-margin-top search-art-btn"
-              onClick={() => setShowArtSelector(true)}
-            >
-              <IonIcon icon={imageOutline} slot="start" />
-              {cardData.artUrl ? 'Change Art' : 'Search Art'}
-            </IonButton>
 
             <IonButton
               expand="block"
