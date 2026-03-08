@@ -2,13 +2,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Preferences } from '@capacitor/preferences';
+import { QUICKSTART_ID } from '../types';
 import type { AppState, ModifierCard } from '../types';
 
 interface StoreState extends AppState {
   addDeck: (name: string) => void;
   initQuickstart: () => void;
   removeDeck: (id: string) => void;
-  setActiveDeck: (id: string | null) => void;
   addModifierToDeck: (deckId: string, card: Omit<ModifierCard, 'id'>) => void;
   updateModifierInDeck: (deckId: string, cardId: string, card: Partial<ModifierCard>) => void;
   removeModifierFromDeck: (deckId: string, cardId: string) => void;
@@ -34,7 +34,6 @@ export const useAppStore = create<StoreState>()(
   persist(
     (set) => ({
       decks: [],
-      activeDeckId: null,
       activeBoard: {},
 
       addDeck: (name) =>
@@ -44,11 +43,11 @@ export const useAppStore = create<StoreState>()(
 
       initQuickstart: () =>
         set((state) => {
-          if (!state.decks.find((d) => d.id === 'quickstart')) {
+          if (!state.decks.find((d) => d.id === QUICKSTART_ID)) {
             return {
               decks: [
                 ...state.decks,
-                { id: 'quickstart', name: 'Quickstart', modifiers: [] },
+                { id: QUICKSTART_ID, name: 'Quickstart', modifiers: [] },
               ],
             };
           }
@@ -58,13 +57,6 @@ export const useAppStore = create<StoreState>()(
       removeDeck: (id) =>
         set((state) => ({
           decks: state.decks.filter((d) => d.id !== id),
-          activeDeckId: state.activeDeckId === id ? null : state.activeDeckId,
-        })),
-
-      setActiveDeck: (id) =>
-        set(() => ({
-          activeDeckId: id,
-          activeBoard: {}, // Reset board when switching decks
         })),
 
       addModifierToDeck: (deckId, card) =>
@@ -91,22 +83,23 @@ export const useAppStore = create<StoreState>()(
         })),
 
       removeModifierFromDeck: (deckId, cardId) =>
-        set((state) => ({
-          decks: state.decks.map((d) =>
-            d.id === deckId
-              ? { ...d, modifiers: d.modifiers.filter((c) => c.id !== cardId) }
-              : d
-          ),
-          // Also remove from active board if it was there
-          activeBoard: Object.fromEntries(
-             Object.entries(state.activeBoard).filter(([id]) => id !== cardId)
-          )
-        })),
+        set((state) => {
+          const { [cardId]: _, ...restBoard } = state.activeBoard;
+          return {
+            decks: state.decks.map((d) =>
+              d.id === deckId
+                ? { ...d, modifiers: d.modifiers.filter((c) => c.id !== cardId) }
+                : d
+            ),
+            activeBoard: restBoard,
+          };
+        }),
 
       updateCardCount: (cardId, delta) =>
         set((state) => {
           const currentCount = state.activeBoard[cardId] || 0;
           const nextCount = Math.max(0, currentCount + delta);
+          if (nextCount === currentCount) return state;
           return {
             activeBoard: { ...state.activeBoard, [cardId]: nextCount },
           };
@@ -129,9 +122,7 @@ export const useAppStore = create<StoreState>()(
       storage: createJSONStorage(() => storage),
       partialize: (state) => ({
         ...state,
-        decks: state.decks.filter((d) => d.id !== 'quickstart'),
-        activeDeckId: state.activeDeckId === 'quickstart' ? null : state.activeDeckId,
-        activeBoard: state.activeDeckId === 'quickstart' ? {} : state.activeBoard,
+        decks: state.decks.filter((d) => d.id !== QUICKSTART_ID),
       }),
     }
   )

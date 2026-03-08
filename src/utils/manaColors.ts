@@ -1,4 +1,7 @@
 
+import type React from 'react';
+import type { Category } from '../types';
+
 /**
  * MTG Mana Color → CSS Gradient utility.
  * Used as fallback when no Scryfall art is available.
@@ -51,4 +54,25 @@ export function manaGradient(colors: string[]): string {
   });
 
   return `linear-gradient(135deg, ${stops.join(', ')})`;
+}
+
+/** Build inline style for Ionic IonItem card art / color background */
+export function getCardBgStyle(card: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined {
+  if (card.artUrl) {
+    return {
+      '--background': `linear-gradient(90deg, rgba(22,27,34,0.88) 0%, rgba(22,27,34,0.55) 100%), url(${card.artUrl}) center/cover`,
+    } as React.CSSProperties;
+  }
+  if (card.colors && card.colors.length > 0) {
+    return {
+      '--background': manaGradient(card.colors),
+    } as React.CSSProperties;
+  }
+  return undefined;
+}
+
+/** Build a category CSS class from a prefix (e.g. 'action-btn', 'cat-chip') */
+export function getCategoryClass(prefix: string, cat: Category): string {
+  const slug = cat.toLowerCase().replace(/\s+/g, '-');
+  return `${prefix} ${prefix}-${slug}`;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   IonContent,
   IonHeader,
@@ -19,7 +19,6 @@ import {
   IonReorderGroup,
   IonReorder,
   IonFooter,
-  IonFab,
   IonFabButton,
   IonInput,
   IonSelect,
@@ -29,50 +28,65 @@ import type { ItemReorderEventDetail } from '@ionic/react';
 import { useParams } from 'react-router-dom';
 import { add, remove, flash, refresh, imageOutline, closeCircle } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
-import { manaGradient } from '../utils/manaColors';
+import { getCardBgStyle, getCategoryClass } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
+import { CATEGORIES, QUICKSTART_ID } from '../types';
 import type { Category, ModifierCard, MathType } from '../types';
 
-const categories: Category[] = [
-  'Tokens',
-  'Counters',
-  'Damage',
-  'Card Draw',
-  'Attack Triggers',
-  'ETB',
-];
+interface MathStep {
+  id: string;
+  cardName: string;
+  prevValue: number;
+  operator: string;
+  modifierValue: number;
+  newValue: number;
+  color?: string;
+}
 
-const getCategoryBtnClass = (cat: Category): string => {
-  const map: Record<Category, string> = {
-    'Tokens': 'action-btn action-btn-tokens',
-    'Counters': 'action-btn action-btn-counters',
-    'Damage': 'action-btn action-btn-damage',
-    'Card Draw': 'action-btn action-btn-card-draw',
-    'Attack Triggers': 'action-btn action-btn-attack-triggers',
-    'ETB': 'action-btn action-btn-etb',
-  };
-  return map[cat];
+const sortByOptimization = (a: ModifierCard, b: ModifierCard) => {
+  if (a.mathType === 'additive' && b.mathType === 'multiplier') return -1;
+  if (a.mathType === 'multiplier' && b.mathType === 'additive') return 1;
+  return 0;
 };
 
-/** Build inline style for card art / color background */
-const getCardBgStyle = (card: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined => {
-  if (card.artUrl) {
-    return {
-      '--background': `linear-gradient(90deg, rgba(22,27,34,0.88) 0%, rgba(22,27,34,0.55) 100%), url(${card.artUrl}) center/cover`,
-    } as React.CSSProperties;
+const calculateResult = (base: number, effects: ModifierCard[]) => {
+  let current = base;
+  for (const eff of effects) {
+    if (eff.mathType === 'multiplier') {
+      current *= eff.value;
+    } else {
+      current += eff.value;
+    }
   }
-  if (card.colors && card.colors.length > 0) {
+  return current;
+};
+
+const generateMathSteps = (base: number, effects: ModifierCard[]): MathStep[] => {
+  let current = base;
+  return effects.map((eff) => {
+    const prevValue = current;
+    const isMultiplier = eff.mathType === 'multiplier';
+    const operator = isMultiplier ? 'x' : '+';
+    current = isMultiplier ? current * eff.value : current + eff.value;
     return {
-      '--background': manaGradient(card.colors),
-    } as React.CSSProperties;
-  }
-  return undefined;
+      id: eff.id,
+      cardName: eff.name,
+      prevValue,
+      operator,
+      modifierValue: eff.value,
+      newValue: current,
+      color: eff.colors?.[0],
+    };
+  });
 };
 
 const Play: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const deck = useAppStore((state) => state.decks.find((d) => d.id === id));
-  const { activeBoard, updateCardCount, clearActiveBoard, addModifierToDeck } = useAppStore();
+  const activeBoard = useAppStore((state) => state.activeBoard);
+  const updateCardCount = useAppStore((state) => state.updateCardCount);
+  const clearActiveBoard = useAppStore((state) => state.clearActiveBoard);
+  const addModifierToDeck = useAppStore((state) => state.addModifierToDeck);
 
   const [calculationModal, setCalculationModal] = useState<{
     isOpen: boolean;
@@ -94,68 +108,30 @@ const Play: React.FC = () => {
     colors: undefined as string[] | undefined,
   });
 
-  if (!deck) return <IonPage><IonContent>Deck not found</IonContent></IonPage>;
+  const mathSteps = useMemo(
+    () => generateMathSteps(calculationModal.baseValue, activeEffects),
+    [calculationModal.baseValue, activeEffects]
+  );
 
-  const sortByOptimization = (a: ModifierCard, b: ModifierCard) => {
-    if (a.mathType === 'additive' && b.mathType === 'multiplier') return -1;
-    if (a.mathType === 'multiplier' && b.mathType === 'additive') return 1;
-    return 0;
-  };
+  const result = useMemo(
+    () => calculateResult(calculationModal.baseValue, activeEffects),
+    [calculationModal.baseValue, activeEffects]
+  );
+
+  if (!deck) return <IonPage><IonContent>Deck not found</IonContent></IonPage>;
 
   const handleActionClick = (category: Category) => {
     const effects: ModifierCard[] = [];
-    deck.modifiers.forEach((card) => {
+    for (const card of deck.modifiers) {
+      if (!card.categories.includes(category)) continue;
       const count = activeBoard[card.id] || 0;
       for (let i = 0; i < count; i++) {
         effects.push({ ...card, id: `${card.id}-${i}` });
       }
-    });
-
-    const filteredEffects = effects.filter((c) => c.categories.includes(category));
-    const optimized = [...filteredEffects].sort(sortByOptimization);
-    setActiveEffects(optimized);
+    }
+    effects.sort(sortByOptimization);
+    setActiveEffects(effects);
     setCalculationModal({ isOpen: true, category, baseValue: 1 });
-  };
-
-  const calculateResult = (base: number, effects: ModifierCard[]) => {
-    let current = base;
-    effects.forEach((eff) => {
-      if (eff.mathType === 'multiplier') {
-        current *= eff.value;
-      } else {
-        current += eff.value;
-      }
-    });
-    return current;
-  };
-
-  interface MathStep {
-    id: string;
-    cardName: string;
-    prevValue: number;
-    operator: string;
-    modifierValue: number;
-    newValue: number;
-    color?: string;
-  }
-
-  const generateMathSteps = (base: number, effects: ModifierCard[]): MathStep[] => {
-    let current = base;
-    return effects.map((eff) => {
-      const prevValue = current;
-      const isMultiplier = eff.mathType === 'multiplier';
-      const operator = isMultiplier ? 'x' : '+';
-      current = isMultiplier ? current * eff.value : current + eff.value;
-      return {
-        id: eff.id,
-        cardName: eff.name,
-        prevValue,
-        operator,
-        modifierValue: eff.value,
-        newValue: current,
-        color: eff.colors?.[0], // using first color if available
-      };
-    });
   };
 
   const handleReorder = (event: CustomEvent<ItemReorderEventDetail>) => {
@@ -216,12 +192,12 @@ const Play: React.FC = () => {
         <div className="action-grid">
           <IonGrid>
             <IonRow>
-              {categories.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <IonCol size="6" key={cat}>
                   <IonButton
                     expand="block"
                     fill="outline"
-                    className={getCategoryBtnClass(cat)}
+                    className={getCategoryClass('action-btn', cat)}
                     onClick={(e) => {
                       (e.currentTarget as HTMLIonButtonElement).blur();
                       handleActionClick(cat);
@@ -284,7 +260,7 @@ const Play: React.FC = () => {
           })}
         </IonList>
 
-        {deck.id === 'quickstart' && (
+        {deck.id === QUICKSTART_ID && (
           <div className="custom-fab-container">
             <IonFabButton className="custom-fab-main-btn" onClick={handleOpenAdd}>
               <IonIcon icon={add} style={{ fontSize: '32px' }} />
@@ -365,7 +341,7 @@ const Play: React.FC = () => {
               value={cardData.categories}
               onIonChange={(e) => setCardData({ ...cardData, categories: e.detail.value })}
             >
-              {categories.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <IonSelectOption key={cat} value={cat}>
                   {cat}
                 </IonSelectOption>
@@ -488,7 +464,7 @@ const Play: React.FC = () => {
                   Show Math
                 </summary>
                 <div className="math-steps">
-                  {generateMathSteps(calculationModal.baseValue, activeEffects).map((step, idx) => (
+                  {mathSteps.map((step, idx) => (
                     <div key={`${step.id}-${idx}`} className="math-step-row">
                       <div className="math-step-indicator" style={step.color ? { backgroundColor: `#${step.color}` } : {}}></div>
                       <div className="math-step-content">
@@ -510,7 +486,7 @@ const Play: React.FC = () => {
           <div className="sticky-result-footer">
             <span className="footer-label">{calculationModal.category} Total</span>
             <span className="footer-value">
-              {calculateResult(calculationModal.baseValue, activeEffects)}
+              {result}
             </span>
           </div>
         </IonFooter>

@@ -3,6 +3,17 @@ export type MathType = 'multiplier' | 'additive';
 
 export type Category = 'Tokens' | 'Counters' | 'Damage' | 'Card Draw' | 'Attack Triggers' | 'ETB';
 
+export const CATEGORIES: Category[] = [
+  'Tokens',
+  'Counters',
+  'Damage',
+  'Card Draw',
+  'Attack Triggers',
+  'ETB',
+];
+
+export const QUICKSTART_ID = 'quickstart';
+
 export interface ModifierCard {
   id: string;
   name: string;
@@ -21,13 +32,8 @@ export interface Deck {
   colors?: string[];     // MTG color identity
 }
 
-export interface ActiveBoardCard extends ModifierCard {
-  count: number;
-}
-
 export interface AppState {
   decks: Deck[];
-  activeDeckId: string | null;
   activeBoard: Record<string, number>; // cardId -> count
 }
 

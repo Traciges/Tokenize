@@ -13,7 +13,6 @@ import {
   IonIcon,
   IonButtons,
   IonBackButton,
-  IonFab,
   IonFabButton,
   IonModal,
   IonInput,
@@ -27,45 +26,10 @@ import {
 import { useParams } from 'react-router-dom';
 import { add, trash, imageOutline, closeCircle } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
-import { manaGradient } from '../utils/manaColors';
+import { getCardBgStyle, getCategoryClass } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
+import { CATEGORIES } from '../types';
 import type { Category, MathType, ModifierCard } from '../types';
-
-const categories: Category[] = [
-  'Tokens',
-  'Counters',
-  'Damage',
-  'Card Draw',
-  'Attack Triggers',
-  'ETB',
-];
-
-const getCategoryChipClass = (cat: Category): string => {
-  const map: Record<Category, string> = {
-    'Tokens': 'cat-chip cat-chip-tokens',
-    'Counters': 'cat-chip cat-chip-counters',
-    'Damage': 'cat-chip cat-chip-damage',
-    'Card Draw': 'cat-chip cat-chip-card-draw',
-    'Attack Triggers': 'cat-chip cat-chip-attack-triggers',
-    'ETB': 'cat-chip cat-chip-etb',
-  };
-  return map[cat];
-};
-
-/** Build inline style for card art / color background */
-const getCardBgStyle = (card: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined => {
-  if (card.artUrl) {
-    return {
-      '--background': `linear-gradient(90deg, rgba(22,27,34,0.88) 0%, rgba(22,27,34,0.55) 100%), url(${card.artUrl}) center/cover`,
-    } as React.CSSProperties;
-  }
-  if (card.colors && card.colors.length > 0) {
-    return {
-      '--background': manaGradient(card.colors),
-    } as React.CSSProperties;
-  }
-  return undefined;
-};
 
 const DeckDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -166,7 +130,7 @@ const DeckDetail: React.FC = () => {
                         <IonChip
                           key={cat}
                           outline
-                          className={getCategoryChipClass(cat)}
+                          className={getCategoryClass('cat-chip', cat)}
                         >
                           {cat}
                         </IonChip>
@@ -272,7 +236,7 @@ const DeckDetail: React.FC = () => {
                 value={cardData.categories}
                 onIonChange={(e) => setCardData({ ...cardData, categories: e.detail.value })}
               >
-                {categories.map((cat) => (
+                {CATEGORIES.map((cat) => (
                   <IonSelectOption key={cat} value={cat}>
                     {cat}
                   </IonSelectOption>

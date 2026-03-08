@@ -16,6 +16,7 @@ import { add, play, settings, layersOutline, imageOutline, flash, trashOutline }
 import { useAppStore } from '../store/useAppStore';
 import { manaGradient } from '../utils/manaColors';
 import CardArtSelector from '../components/CardArtSelector';
+import { QUICKSTART_ID } from '../types';
 import { useHistory } from 'react-router-dom';
 
 const Home: React.FC = () => {
@@ -28,7 +29,7 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   // Filter out the ephemeral quickstart deck from the list if it happens to be in memory
-  const displayDecks = decks.filter(d => d.id !== 'quickstart');
+  const displayDecks = decks.filter(d => d.id !== QUICKSTART_ID);
 
   const getDeckBgStyle = (deck: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined => {
     if (deck.artUrl) {
@@ -55,7 +56,7 @@ const Home: React.FC = () => {
   const handleQuickstart = () => {
     setIsFabOpen(false);
     initQuickstart();
-    history.push('/play/quickstart');
+    history.push(`/play/${QUICKSTART_ID}`);
   };
 
   const handleNewDeck = () => {

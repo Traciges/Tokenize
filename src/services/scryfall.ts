@@ -76,8 +76,9 @@ export async function searchCards(query: string): Promise<ScryfallCardResult[]> 
     const results: ScryfallCardResult[] = [];
 
     for (const card of data.data || []) {
+      if (results.length >= 20) break;
       const result = toCardResult(card);
-      if (result && results.length < 20) {
+      if (result) {
         results.push(result);
       }
     }
