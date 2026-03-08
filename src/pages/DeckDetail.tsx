@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   IonContent,
@@ -13,6 +12,7 @@ import {
   IonIcon,
   IonButtons,
   IonBackButton,
+  IonFab,
   IonFabButton,
   IonModal,
   IonInput,
@@ -22,6 +22,7 @@ import {
   IonItemOptions,
   IonItemOption,
   IonChip,
+  IonToggle,
 } from '@ionic/react';
 import { useParams } from 'react-router-dom';
 import { add, trash, imageOutline, closeCircle } from 'ionicons/icons';
@@ -43,6 +44,7 @@ const DeckDetail: React.FC = () => {
     name: '',
     mathType: 'multiplier' as MathType,
     value: 2,
+    isDynamicValue: false,
     categories: [] as Category[],
     artUrl: undefined as string | undefined,
     colors: undefined as string[] | undefined,
@@ -52,7 +54,7 @@ const DeckDetail: React.FC = () => {
 
   const handleOpenAdd = () => {
     setEditingCardId(null);
-    setCardData({ name: '', mathType: 'multiplier', value: 2, categories: [], artUrl: undefined, colors: undefined });
+    setCardData({ name: '', mathType: 'multiplier', value: 2, isDynamicValue: false, categories: [], artUrl: undefined, colors: undefined });
     setShowModal(true);
   };
 
@@ -62,6 +64,7 @@ const DeckDetail: React.FC = () => {
       name: card.name,
       mathType: card.mathType,
       value: card.value,
+      isDynamicValue: card.isDynamicValue || false,
       categories: [...card.categories],
       artUrl: card.artUrl,
       colors: card.colors,
@@ -123,7 +126,7 @@ const DeckDetail: React.FC = () => {
                   <IonLabel>
                     <h2>{card.name}</h2>
                     <span className={`math-badge ${card.mathType}`}>
-                      {card.mathType === 'multiplier' ? `x${card.value}` : `+${card.value}`}
+                      {card.mathType === 'multiplier' ? `x${card.value}` : card.mathType === 'additive' ? `+${card.value}` : `Min ${card.value}`}
                     </span>
                     <div style={{ marginTop: '6px' }}>
                       {card.categories.map((cat) => (
@@ -216,6 +219,7 @@ const DeckDetail: React.FC = () => {
               >
                 <IonSelectOption value="multiplier">Multiplier (x)</IonSelectOption>
                 <IonSelectOption value="additive">Additive (+)</IonSelectOption>
+                <IonSelectOption value="floor">Minimum Value (Floor)</IonSelectOption>
               </IonSelect>
             </IonItem>
             <IonItem>
@@ -227,6 +231,13 @@ const DeckDetail: React.FC = () => {
                   const val = parseInt(e.detail.value!);
                   setCardData({ ...cardData, value: isNaN(val) ? 0 : val });
                 }}
+              />
+            </IonItem>
+            <IonItem lines="none" style={{ marginTop: '8px', marginBottom: '8px' }}>
+              <IonLabel>Value can change in-game (Dynamic)</IonLabel>
+              <IonToggle
+                checked={cardData.isDynamicValue}
+                onIonChange={(e) => setCardData({ ...cardData, isDynamicValue: e.detail.checked })}
               />
             </IonItem>
             <IonItem>

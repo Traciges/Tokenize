@@ -23,6 +23,7 @@ import {
   IonInput,
   IonSelect,
   IonSelectOption,
+  IonToggle
 } from '@ionic/react';
 import type { ItemReorderEventDetail } from '@ionic/react';
 import { useParams } from 'react-router-dom';
@@ -54,16 +55,16 @@ interface MathStep {
 }
 
 const sortByOptimization = (a: ModifierCard, b: ModifierCard) => {
-  if (a.mathType === 'additive' && b.mathType === 'multiplier') return -1;
-  if (a.mathType === 'multiplier' && b.mathType === 'additive') return 1;
-  return 0;
+  const order = { additive: 1, multiplier: 2, floor: 3 };
+  return order[a.mathType] - order[b.mathType];
 };
-
 const calculateResult = (base: number, effects: ModifierCard[]) => {
   let current = base;
   for (const eff of effects) {
     if (eff.mathType === 'multiplier') {
       current *= eff.value;
+    } else if (eff.mathType === 'floor') {
+      current = Math.max(current, eff.value);
     } else {
       current += eff.value;
     }
@@ -75,9 +76,17 @@ const generateMathSteps = (base: number, effects: ModifierCard[]): MathStep[] =>
   let current = base;
   return effects.map((eff) => {
     const prevValue = current;
-    const isMultiplier = eff.mathType === 'multiplier';
-    const operator = isMultiplier ? 'x' : '+';
-    current = isMultiplier ? current * eff.value : current + eff.value;
+    let operator = '';
+    if (eff.mathType === 'multiplier') {
+      operator = 'x';
+      current *= eff.value;
+    } else if (eff.mathType === 'floor') {
+      operator = 'Min';
+      current = Math.max(current, eff.value);
+    } else {
+      operator = '+';
+      current += eff.value;
+    }
     return {
       id: eff.id,
       cardName: eff.name,
@@ -97,6 +106,7 @@ const Play: React.FC = () => {
   const updateCardCount = useAppStore((state) => state.updateCardCount);
   const clearActiveBoard = useAppStore((state) => state.clearActiveBoard);
   const addModifierToDeck = useAppStore((state) => state.addModifierToDeck);
+  const updateModifierInDeck = useAppStore((state) => state.updateModifierInDeck);
 
   const [calculationModal, setCalculationModal] = useState<{
     isOpen: boolean;
@@ -113,6 +123,7 @@ const Play: React.FC = () => {
     name: '',
     mathType: 'multiplier' as MathType,
     value: 2,
+    isDynamicValue: false,
     categories: [] as Category[],
     artUrl: undefined as string | undefined,
     colors: undefined as string[] | undefined,
@@ -158,7 +169,7 @@ const Play: React.FC = () => {
   };
 
   const handleOpenAdd = () => {
-    setCardData({ name: '', mathType: 'multiplier', value: 2, categories: [], artUrl: undefined, colors: undefined });
+    setCardData({ name: '', mathType: 'multiplier', value: 2, isDynamicValue: false, categories: [], artUrl: undefined, colors: undefined });
     setShowAddModal(true);
   };
 
@@ -240,9 +251,33 @@ const Play: React.FC = () => {
               >
                 <IonLabel>
                   <h2>{card.name}</h2>
-                  <p>
-                    {card.mathType === 'multiplier' ? `x${card.value}` : `+${card.value}`}
-                  </p>
+                  {card.isDynamicValue ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Value:</span>
+                      <IonInput
+                        type="number"
+                        value={card.value}
+                        onIonInput={(e) => {
+                          const val = parseInt(e.detail.value!, 10);
+                          if (!isNaN(val)) {
+                            updateModifierInDeck(deck.id, card.id, { value: val });
+                          }
+                        }}
+                        style={{
+                          width: '60px',
+                          border: '1px solid var(--mtg-border)',
+                          borderRadius: '4px',
+                          padding: '0 8px',
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          color: 'var(--mtg-text-primary)'
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <p>
+                      {card.mathType === 'multiplier' ? `x${card.value}` : card.mathType === 'additive' ? `+${card.value}` : `Min ${card.value}`}
+                    </p>
+                  )}
                 </IonLabel>
                 <div slot="end" className="count-controls">
                   <IonButton
@@ -335,6 +370,7 @@ const Play: React.FC = () => {
             >
               <IonSelectOption value="multiplier">Multiplier (x)</IonSelectOption>
               <IonSelectOption value="additive">Additive (+)</IonSelectOption>
+              <IonSelectOption value="floor">Minimum Value (Floor)</IonSelectOption>
             </IonSelect>
           </IonItem>
           <IonItem>
@@ -348,9 +384,15 @@ const Play: React.FC = () => {
               }}
             />
           </IonItem>
+          <IonItem lines="none" style={{ marginTop: '8px', marginBottom: '8px' }}>
+            <IonLabel>Value can change in-game (Dynamic)</IonLabel>
+            <IonToggle
+              checked={cardData.isDynamicValue}
+              onIonChange={(e) => setCardData({ ...cardData, isDynamicValue: e.detail.checked })}
+            />
+          </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Categories</IonLabel>
-            <IonSelect
+            <IonLabel position="stacked">Categories</IonLabel>            <IonSelect
               multiple={true}
               value={cardData.categories}
               onIonChange={(e) => setCardData({ ...cardData, categories: e.detail.value })}
@@ -484,7 +526,11 @@ const Play: React.FC = () => {
                       <div className="math-step-content">
                         <span className="math-step-card-name">({step.cardName})</span>
                         <span className="math-step-calc">
-                          {step.prevValue} {step.operator} {step.modifierValue} = <strong>{step.newValue}</strong>
+                          {step.operator === 'Min' ? (
+                            <>{step.prevValue} &rarr; Min({step.modifierValue}) = <strong>{step.newValue}</strong></>
+                          ) : (
+                            <>{step.prevValue} {step.operator} {step.modifierValue} = <strong>{step.newValue}</strong></>
+                          )}
                         </span>
                       </div>
                     </div>

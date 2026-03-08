@@ -217,6 +217,12 @@ ion-content::part(background) {
   border: 1px solid rgba(90, 158, 111, 0.2);
 }
 
+.math-badge.floor {
+  background: var(--mtg-blue-dim);
+  color: var(--mtg-blue);
+  border: 1px solid rgba(74, 143, 191, 0.2);
+}
+
 /* Category chip colors */
 .cat-chip {
   --background: transparent;

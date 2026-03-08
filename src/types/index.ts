@@ -1,5 +1,5 @@
 
-export type MathType = 'multiplier' | 'additive';
+export type MathType = 'multiplier' | 'additive' | 'floor';
 
 export type Category = 'Tokens' | 'Counters' | 'Damage' | 'Card Draw' | 'Attack Triggers' | 'ETB';
 
@@ -19,6 +19,7 @@ export interface ModifierCard {
   name: string;
   mathType: MathType;
   value: number; // e.g., 2 for multiplier, 1 for additive
+  isDynamicValue?: boolean;
   categories: Category[];
   artUrl?: string;       // Scryfall art_crop URL
   colors?: string[];     // MTG color identity: 'W' | 'U' | 'B' | 'R' | 'G'
