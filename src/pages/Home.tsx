@@ -86,7 +86,7 @@ const Home: React.FC = () => {
                 >
                   <div
                     className={`deck-card-inner ${hasArt ? 'has-art' : ''}`}
-                    onClick={() => history.push(`/deck/${deck.id}`)}
+                    onClick={() => history.push(`/play/${deck.id}`)}
                     style={getDeckBgStyle(deck)}
                   >
                     <h3 className="deck-name">{deck.name}</h3>

@@ -255,11 +255,13 @@ const Play: React.FC = () => {
           })}
         </IonList>
 
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={handleOpenAdd}>
-            <IonIcon icon={add} />
-          </IonFabButton>
-        </IonFab>
+        {deck.id === 'quickstart' && (
+          <div className="custom-fab-container">
+            <IonFabButton className="custom-fab-main-btn" onClick={handleOpenAdd}>
+              <IonIcon icon={add} style={{ fontSize: '32px' }} />
+            </IonFabButton>
+          </div>
+        )}
       </IonContent>
 
       {/* ── Add Card Modal ─────────────────────── */}

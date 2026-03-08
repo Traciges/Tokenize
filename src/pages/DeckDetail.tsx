@@ -194,11 +194,11 @@ const DeckDetail: React.FC = () => {
           </div>
         )}
 
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={handleOpenAdd}>
-            <IonIcon icon={add} />
+        <div className="custom-fab-container">
+          <IonFabButton className="custom-fab-main-btn" onClick={handleOpenAdd}>
+            <IonIcon icon={add} style={{ fontSize: '32px' }} />
           </IonFabButton>
-        </IonFab>
+        </div>
 
         {/* ── Add/Edit Card Modal ─────────────────────── */}
         <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
