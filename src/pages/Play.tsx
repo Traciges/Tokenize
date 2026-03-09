@@ -97,6 +97,40 @@ const generateMathSteps = (
   });
 };
 
+const getPermutations = <T,>(arr: T[]): T[][] => {
+  if (arr.length <= 1) return [arr];
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i++) {
+    const current = arr[i];
+    const remaining = [...arr.slice(0, i), ...arr.slice(i + 1)];
+    const perms = getPermutations(remaining);
+    for (const p of perms) {
+      result.push([current, ...p]);
+    }
+  }
+  return result;
+};
+
+const optimizeEffects = (effects: ModifierCard[], baseValue: number): ModifierCard[] => {
+  if (effects.length === 0) return effects;
+  if (effects.length > 8) {
+    return [...effects].sort(sortByOptimization);
+  }
+  const permutations = getPermutations(effects);
+  let maxResult = -Infinity;
+  let bestPermutation = effects;
+
+  for (const perm of permutations) {
+    const steps = generateMathSteps(baseValue, perm);
+    const result = steps.length > 0 ? steps[steps.length - 1].newValue : baseValue;
+    if (result > maxResult) {
+      maxResult = result;
+      bestPermutation = perm;
+    }
+  }
+  return bestPermutation;
+};
+
 const Play: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const deck = useAppStore((state) => state.decks.find((d) => d.id === id));
@@ -128,7 +162,7 @@ const Play: React.FC = () => {
   const LONG_PRESS_MS = 400;
 
   const getEffectsForCategory = useCallback(
-    (category: Category) => {
+    (category: Category, baseValue: number = 1) => {
       const effects: ModifierCard[] = [];
       for (const card of deck?.modifiers ?? []) {
         if (!card.categories.includes(category)) continue;
@@ -137,8 +171,7 @@ const Play: React.FC = () => {
           effects.push({ ...card, id: `${card.id}-${i}` });
         }
       }
-      effects.sort(sortByOptimization);
-      return effects;
+      return optimizeEffects(effects, baseValue);
     },
     [deck?.modifiers, activeBoard],
   );
@@ -149,7 +182,7 @@ const Play: React.FC = () => {
       longPressTimer.current = setTimeout(() => {
         isLongPress.current = true;
         // Long press → open detailed modal
-        const effects = getEffectsForCategory(category);
+        const effects = getEffectsForCategory(category, 1);
         setActiveEffects(effects);
         setCalculationModal({ isOpen: true, category, baseValue: 1 });
       }, LONG_PRESS_MS);
@@ -165,7 +198,7 @@ const Play: React.FC = () => {
       }
       if (!isLongPress.current) {
         // Short tap → quick inline result
-        const effects = getEffectsForCategory(category);
+        const effects = getEffectsForCategory(category, 1);
         const result = generateMathSteps(1, effects).at(-1)?.newValue ?? 1;
         setQuickResult({ category, result, effectCount: effects.length });
       }
@@ -202,7 +235,7 @@ const Play: React.FC = () => {
 
   // handleActionClick kept for modal-only usage (e.g. from quick result)
   const handleActionClick = (category: Category) => {
-    const effects = getEffectsForCategory(category);
+    const effects = getEffectsForCategory(category, 1);
     setActiveEffects(effects);
     setCalculationModal({ isOpen: true, category, baseValue: 1 });
   };
@@ -216,8 +249,8 @@ const Play: React.FC = () => {
   };
 
   const autoOptimize = () => {
-    const optimized = [...activeEffects].sort(sortByOptimization);
-    setActiveEffects(optimized);
+    if (activeEffects.length === 0) return;
+    setActiveEffects(optimizeEffects(activeEffects, calculationModal.baseValue));
   };
 
   return (
