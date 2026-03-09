@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   IonContent,
   IonHeader,
@@ -116,6 +116,62 @@ const Play: React.FC = () => {
 
   const [activeEffects, setActiveEffects] = useState<ModifierCard[]>([]);
 
+  // Quick result state (inline display on short tap)
+  const [quickResult, setQuickResult] = useState<{
+    category: Category;
+    result: number;
+    effectCount: number;
+  } | null>(null);
+
+  // Long press detection
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
+  const LONG_PRESS_MS = 400;
+
+  const getEffectsForCategory = useCallback((category: Category) => {
+    const effects: ModifierCard[] = [];
+    for (const card of deck?.modifiers ?? []) {
+      if (!card.categories.includes(category)) continue;
+      const count = activeBoard[card.id] || 0;
+      for (let i = 0; i < count; i++) {
+        effects.push({ ...card, id: `${card.id}-${i}` });
+      }
+    }
+    effects.sort(sortByOptimization);
+    return effects;
+  }, [deck?.modifiers, activeBoard]);
+
+  const handlePointerDown = useCallback((category: Category) => {
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      // Long press → open detailed modal
+      const effects = getEffectsForCategory(category);
+      setActiveEffects(effects);
+      setCalculationModal({ isOpen: true, category, baseValue: 1 });
+    }, LONG_PRESS_MS);
+  }, [getEffectsForCategory]);
+
+  const handlePointerUp = useCallback((category: Category) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (!isLongPress.current) {
+      // Short tap → quick inline result
+      const effects = getEffectsForCategory(category);
+      const result = calculateResult(1, effects);
+      setQuickResult({ category, result, effectCount: effects.length });
+    }
+  }, [getEffectsForCategory]);
+
+  const handlePointerCancel = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
   // Add Card State
   const [showAddModal, setShowAddModal] = useState(false);
   const [showArtSelector, setShowArtSelector] = useState(false);
@@ -141,16 +197,9 @@ const Play: React.FC = () => {
 
   if (!deck) return <IonPage><IonContent>Deck not found</IonContent></IonPage>;
 
+  // handleActionClick kept for modal-only usage (e.g. from quick result)
   const handleActionClick = (category: Category) => {
-    const effects: ModifierCard[] = [];
-    for (const card of deck.modifiers) {
-      if (!card.categories.includes(category)) continue;
-      const count = activeBoard[card.id] || 0;
-      for (let i = 0; i < count; i++) {
-        effects.push({ ...card, id: `${card.id}-${i}` });
-      }
-    }
-    effects.sort(sortByOptimization);
+    const effects = getEffectsForCategory(category);
     setActiveEffects(effects);
     setCalculationModal({ isOpen: true, category, baseValue: 1 });
   };
@@ -221,10 +270,17 @@ const Play: React.FC = () => {
                       expand="block"
                       fill="outline"
                       className={getCategoryClass('action-btn', cat)}
-                      onClick={(e) => {
-                        (e.currentTarget as HTMLIonButtonElement).blur();
-                        handleActionClick(cat);
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        handlePointerDown(cat);
                       }}
+                      onPointerUp={(e) => {
+                        (e.currentTarget as HTMLIonButtonElement).blur();
+                        handlePointerUp(cat);
+                      }}
+                      onPointerLeave={handlePointerCancel}
+                      onPointerCancel={handlePointerCancel}
+                      onClick={(e) => e.preventDefault()}
                     >
                       <Icon size={16} />
                       <span style={{ marginLeft: 6 }}>{cat}</span>
@@ -317,6 +373,19 @@ const Play: React.FC = () => {
           </div>
         )}
       </IonContent>
+
+      {/* Quick Result Footer */}
+      {quickResult && (
+        <IonFooter>
+          <div
+            className="sticky-result-footer quick-result-footer"
+            onClick={() => quickResult.effectCount > 0 && handleActionClick(quickResult.category)}
+          >
+            <span className="footer-label">{quickResult.category} Total</span>
+            <span className="footer-value">{quickResult.result}</span>
+          </div>
+        </IonFooter>
+      )}
 
       {/* ── Add Card Modal ─────────────────────── */}
       <IonModal isOpen={showAddModal} onDidDismiss={() => setShowAddModal(false)}>

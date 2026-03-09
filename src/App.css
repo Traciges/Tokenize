@@ -318,43 +318,86 @@ ion-content::part(background) {
   text-transform: none;
   --border-width: 1.5px;
   transition: all 0.15s ease;
+  --background-focused: transparent;
 }
 
 .action-btn-tokens {
   --color: var(--mtg-green);
   --border-color: rgba(90, 158, 111, 0.3);
+  --background: linear-gradient(135deg, rgba(90, 158, 111, 0.08) 0%, rgba(90, 158, 111, 0.02) 100%);
   --background-hover: var(--mtg-green-dim);
+  --background-activated: rgba(90, 158, 111, 0.15);
+  --ripple-color: rgba(90, 158, 111, 0.3);
 }
 
 .action-btn-counters {
   --color: var(--mtg-gold);
   --border-color: rgba(212, 168, 67, 0.3);
+  --background: linear-gradient(135deg, rgba(212, 168, 67, 0.08) 0%, rgba(212, 168, 67, 0.02) 100%);
   --background-hover: var(--mtg-gold-glow);
+  --background-activated: rgba(212, 168, 67, 0.15);
+  --ripple-color: rgba(212, 168, 67, 0.3);
 }
 
 .action-btn-damage {
   --color: var(--mtg-red);
   --border-color: rgba(196, 92, 92, 0.3);
+  --background: linear-gradient(135deg, rgba(196, 92, 92, 0.08) 0%, rgba(196, 92, 92, 0.02) 100%);
   --background-hover: var(--mtg-red-dim);
+  --background-activated: rgba(196, 92, 92, 0.15);
+  --ripple-color: rgba(196, 92, 92, 0.3);
 }
 
 .action-btn-card-draw {
   --color: var(--mtg-blue);
   --border-color: rgba(74, 143, 191, 0.3);
+  --background: linear-gradient(135deg, rgba(74, 143, 191, 0.08) 0%, rgba(74, 143, 191, 0.02) 100%);
   --background-hover: var(--mtg-blue-dim);
+  --background-activated: rgba(74, 143, 191, 0.15);
+  --ripple-color: rgba(74, 143, 191, 0.3);
 }
 
 .action-btn-attack-triggers {
   --color: var(--mtg-red);
   --border-color: rgba(196, 92, 92, 0.3);
+  --background: linear-gradient(135deg, rgba(196, 92, 92, 0.08) 0%, rgba(196, 92, 92, 0.02) 100%);
   --background-hover: var(--mtg-red-dim);
+  --background-activated: rgba(196, 92, 92, 0.15);
+  --ripple-color: rgba(196, 92, 92, 0.3);
 }
 
 .action-btn-etb {
   --color: var(--mtg-purple);
   --border-color: rgba(139, 110, 192, 0.3);
+  --background: linear-gradient(135deg, rgba(139, 110, 192, 0.08) 0%, rgba(139, 110, 192, 0.02) 100%);
   --background-hover: var(--mtg-purple-dim);
+  --background-activated: rgba(139, 110, 192, 0.15);
+  --ripple-color: rgba(139, 110, 192, 0.3);
 }
+
+/* ── Quick Result Footer (tap result) ─────────────────── */
+
+.quick-result-footer {
+  cursor: pointer;
+  animation: quickResultSlideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quick-result-footer:active {
+  background: var(--mtg-bg-elevated) !important;
+}
+
+@keyframes quickResultSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Active category button highlight */
 
 /* Active Cards List */
 .board-section-title {
