@@ -10,7 +10,7 @@
 
 ---
 
-## Key Features
+## ✨ Key Features  
 
 - **Advanced Math Engine:** Support for multipliers, additives, and floor-based logic (e.g., doubling tokens with *Mondrak* or *Doubling Season*).
 - **Scryfall Integration:** Instantly search and apply authentic card art to your modifiers and decks.
