@@ -12,7 +12,6 @@ import {
   IonIcon,
   IonButtons,
   IonBackButton,
-  IonFab,
   IonFabButton,
   IonModal,
   IonInput,

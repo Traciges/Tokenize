@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   IonContent,
   IonHeader,
@@ -11,16 +10,25 @@ import {
   IonFabButton,
   IonAlert,
   IonCard,
-} from '@ionic/react';
-import { add, play, settings, layersOutline, imageOutline, flash, trashOutline } from 'ionicons/icons';
-import { useAppStore } from '../store/useAppStore';
-import { manaGradient } from '../utils/manaColors';
-import CardArtSelector from '../components/CardArtSelector';
-import { QUICKSTART_ID } from '../types';
-import { useHistory } from 'react-router-dom';
+} from "@ionic/react";
+import {
+  add,
+  play,
+  settings,
+  layersOutline,
+  imageOutline,
+  flash,
+  trashOutline,
+} from "ionicons/icons";
+import { useAppStore } from "../store/useAppStore";
+import { manaGradient } from "../utils/manaColors";
+import CardArtSelector from "../components/CardArtSelector";
+import { QUICKSTART_ID } from "../types";
+import { useHistory } from "react-router-dom";
 
 const Home: React.FC = () => {
-  const { decks, addDeck, updateDeckArt, initQuickstart, removeDeck } = useAppStore();
+  const { decks, addDeck, updateDeckArt, initQuickstart, removeDeck } =
+    useAppStore();
   const [showAddAlert, setShowAddAlert] = useState(false);
   const [showDeckArtSelector, setShowDeckArtSelector] = useState(false);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
@@ -29,14 +37,17 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   // Filter out the ephemeral quickstart deck from the list if it happens to be in memory
-  const displayDecks = decks.filter(d => d.id !== QUICKSTART_ID);
+  const displayDecks = decks.filter((d) => d.id !== QUICKSTART_ID);
 
-  const getDeckBgStyle = (deck: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined => {
+  const getDeckBgStyle = (deck: {
+    artUrl?: string;
+    colors?: string[];
+  }): React.CSSProperties | undefined => {
     if (deck.artUrl) {
       return {
         backgroundImage: `linear-gradient(180deg, rgba(13,17,23,0.25) 0%, rgba(13,17,23,0.85) 70%), url(${deck.artUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       };
     }
     if (deck.colors && deck.colors.length > 0) {
@@ -45,9 +56,13 @@ const Home: React.FC = () => {
     return undefined;
   };
 
-  const handleDeckArtSelect = (artUrl: string, colors: string[], _cardName?: string) => {
+  const handleDeckArtSelect = (artUrl: string, colors: string[]) => {
     if (editingDeckId) {
-      updateDeckArt(editingDeckId, artUrl || undefined, colors.length > 0 ? colors : undefined);
+      updateDeckArt(
+        editingDeckId,
+        artUrl || undefined,
+        colors.length > 0 ? colors : undefined,
+      );
     }
     setShowDeckArtSelector(false);
     setEditingDeckId(null);
@@ -78,23 +93,26 @@ const Home: React.FC = () => {
         {displayDecks.length > 0 ? (
           <div className="deck-grid">
             {displayDecks.map((deck) => {
-              const hasArt = !!(deck.artUrl || (deck.colors && deck.colors.length > 0));
+              const hasArt = !!(
+                deck.artUrl ||
+                (deck.colors && deck.colors.length > 0)
+              );
               return (
-                <IonCard
-                  key={deck.id}
-                  className="deck-card"
-                  button={false}
-                >
+                <IonCard key={deck.id} className="deck-card" button={false}>
                   <div
-                    className={`deck-card-inner ${hasArt ? 'has-art' : ''}`}
+                    className={`deck-card-inner ${hasArt ? "has-art" : ""}`}
                     onClick={() => history.push(`/play/${deck.id}`)}
                     style={getDeckBgStyle(deck)}
                   >
                     <h3 className="deck-name">{deck.name}</h3>
                     <p className="deck-count">
-                      {deck.modifiers.length} {deck.modifiers.length === 1 ? 'Card' : 'Cards'}
+                      {deck.modifiers.length}{" "}
+                      {deck.modifiers.length === 1 ? "Card" : "Cards"}
                     </p>
-                    <div className="deck-actions" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="deck-actions"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <IonButton
                         size="small"
                         fill="outline"
@@ -156,32 +174,32 @@ const Home: React.FC = () => {
         )}
 
         {/* ── Custom Animated FAB ──────────────────────── */}
-        <div 
-          className={`custom-fab-backdrop ${isFabOpen ? 'open' : ''}`} 
-          onClick={() => setIsFabOpen(false)} 
+        <div
+          className={`custom-fab-backdrop ${isFabOpen ? "open" : ""}`}
+          onClick={() => setIsFabOpen(false)}
         />
-        
-        <div className={`custom-fab-container ${isFabOpen ? 'open' : ''}`}>
+
+        <div className={`custom-fab-container ${isFabOpen ? "open" : ""}`}>
           <div className="custom-fab-menu">
             <div className="custom-fab-item">
               <span className="custom-fab-label" onClick={handleQuickstart}>
                 Quickstart
               </span>
-              <IonFabButton 
-                className="custom-fab-sub-btn" 
+              <IonFabButton
+                className="custom-fab-sub-btn"
                 onClick={handleQuickstart}
                 size="small"
               >
                 <IonIcon icon={flash} color="light" />
               </IonFabButton>
             </div>
-            
+
             <div className="custom-fab-item">
               <span className="custom-fab-label" onClick={handleNewDeck}>
                 New Deck
               </span>
-              <IonFabButton 
-                className="custom-fab-sub-btn" 
+              <IonFabButton
+                className="custom-fab-sub-btn"
                 onClick={handleNewDeck}
                 size="small"
               >
@@ -189,12 +207,12 @@ const Home: React.FC = () => {
               </IonFabButton>
             </div>
           </div>
-          
-          <IonFabButton 
-            className="custom-fab-main-btn" 
+
+          <IonFabButton
+            className="custom-fab-main-btn"
             onClick={() => setIsFabOpen(!isFabOpen)}
           >
-            <IonIcon icon={add} style={{ fontSize: '32px' }} />
+            <IonIcon icon={add} style={{ fontSize: "32px" }} />
           </IonFabButton>
         </div>
 
@@ -204,15 +222,15 @@ const Home: React.FC = () => {
           header="New Deck"
           inputs={[
             {
-              name: 'name',
-              type: 'text',
-              placeholder: 'Deck Name (e.g. Anikthea)',
+              name: "name",
+              type: "text",
+              placeholder: "Deck Name (e.g. Anikthea)",
             },
           ]}
           buttons={[
-            { text: 'Cancel', role: 'cancel' },
+            { text: "Cancel", role: "cancel" },
             {
-              text: 'Add',
+              text: "Add",
               handler: (data) => {
                 if (data.name) addDeck(data.name);
               },
@@ -226,10 +244,10 @@ const Home: React.FC = () => {
           header="Delete Deck"
           message="Are you sure you want to delete this deck? This action cannot be undone."
           buttons={[
-            { text: 'Cancel', role: 'cancel' },
+            { text: "Cancel", role: "cancel" },
             {
-              text: 'Delete',
-              role: 'destructive',
+              text: "Delete",
+              role: "destructive",
               handler: () => {
                 if (deckToDelete) {
                   removeDeck(deckToDelete);
