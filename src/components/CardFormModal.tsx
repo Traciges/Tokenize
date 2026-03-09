@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   IonModal,
   IonHeader,
@@ -33,6 +33,8 @@ interface CardFormModalProps {
 const CardFormModal: React.FC<CardFormModalProps> = ({ isOpen, onDismiss, deckId, editingCard }) => {
   const { addModifierToDeck, updateModifierInDeck } = useAppStore();
   const [showArtSelector, setShowArtSelector] = useState(false);
+  
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const [cardData, setCardData] = useState({
     name: '',
     mathType: 'multiplier' as MathType,
@@ -44,30 +46,32 @@ const CardFormModal: React.FC<CardFormModalProps> = ({ isOpen, onDismiss, deckId
   });
 
   // Populate or reset the form each time the modal opens
-  useEffect(() => {
-    if (!isOpen) return;
-    if (editingCard) {
-      setCardData({
-        name: editingCard.name,
-        mathType: editingCard.mathType,
-        value: editingCard.value,
-        isDynamicValue: editingCard.isDynamicValue ?? false,
-        categories: [...editingCard.categories],
-        artUrl: editingCard.artUrl,
-        colors: editingCard.colors,
-      });
-    } else {
-      setCardData({
-        name: '',
-        mathType: 'multiplier',
-        value: 2,
-        isDynamicValue: false,
-        categories: [],
-        artUrl: undefined,
-        colors: undefined,
-      });
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      if (editingCard) {
+        setCardData({
+          name: editingCard.name,
+          mathType: editingCard.mathType,
+          value: editingCard.value,
+          isDynamicValue: editingCard.isDynamicValue ?? false,
+          categories: [...editingCard.categories],
+          artUrl: editingCard.artUrl,
+          colors: editingCard.colors,
+        });
+      } else {
+        setCardData({
+          name: '',
+          mathType: 'multiplier',
+          value: 2,
+          isDynamicValue: false,
+          categories: [],
+          artUrl: undefined,
+          colors: undefined,
+        });
+      }
     }
-  }, [isOpen, editingCard]);
+  }
 
   const handleSave = () => {
     if (!cardData.name || cardData.categories.length === 0) return;

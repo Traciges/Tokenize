@@ -264,6 +264,11 @@ ion-content::part(background) {
   border: 1px solid rgba(139, 110, 192, 0.3);
 }
 
+.cat-chip-mana {
+  --color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
 /* ── Modal Form Styling ─────────────────────────────────── */
 .mtg-modal-form ion-item {
   --background: var(--mtg-bg-elevated);
@@ -358,12 +363,12 @@ ion-content::part(background) {
 }
 
 .action-btn-attack-triggers {
-  --color: var(--mtg-red);
-  --border-color: rgba(196, 92, 92, 0.3);
-  --background: linear-gradient(135deg, rgba(196, 92, 92, 0.08) 0%, rgba(196, 92, 92, 0.02) 100%);
-  --background-hover: var(--mtg-red-dim);
-  --background-activated: rgba(196, 92, 92, 0.15);
-  --ripple-color: rgba(196, 92, 92, 0.3);
+  --color: #a83232;
+  --border-color: rgba(168, 50, 50, 0.4);
+  --background: linear-gradient(135deg, rgba(168, 50, 50, 0.1) 0%, rgba(168, 50, 50, 0.03) 100%);
+  --background-hover: rgba(168, 50, 50, 0.2);
+  --background-activated: rgba(168, 50, 50, 0.25);
+  --ripple-color: rgba(168, 50, 50, 0.4);
 }
 
 .action-btn-etb {
@@ -373,6 +378,15 @@ ion-content::part(background) {
   --background-hover: var(--mtg-purple-dim);
   --background-activated: rgba(139, 110, 192, 0.15);
   --ripple-color: rgba(139, 110, 192, 0.3);
+}
+
+.action-btn-mana {
+  --color: #38bdf8;
+  --border-color: rgba(56, 189, 248, 0.3);
+  --background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.02) 100%);
+  --background-hover: rgba(56, 189, 248, 0.15);
+  --background-activated: rgba(56, 189, 248, 0.25);
+  --ripple-color: rgba(56, 189, 248, 0.3);
 }
 
 /* ── Quick Result Footer (tap result) ─────────────────── */

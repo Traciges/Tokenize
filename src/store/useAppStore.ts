@@ -84,7 +84,8 @@ export const useAppStore = create<StoreState>()(
 
       removeModifierFromDeck: (deckId, cardId) =>
         set((state) => {
-          const { [cardId]: _, ...restBoard } = state.activeBoard;
+          const restBoard = { ...state.activeBoard };
+          delete restBoard[cardId];
           return {
             decks: state.decks.map((d) =>
               d.id === deckId

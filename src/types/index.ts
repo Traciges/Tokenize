@@ -1,7 +1,7 @@
 
 export type MathType = 'multiplier' | 'additive' | 'floor';
 
-export type Category = 'Tokens' | 'Counters' | 'Damage' | 'Card Draw' | 'Attack Triggers' | 'ETB';
+export type Category = 'Tokens' | 'Counters' | 'Damage' | 'Card Draw' | 'Attack Triggers' | 'ETB' | 'Mana';
 
 export const CATEGORIES: Category[] = [
   'Tokens',
@@ -10,6 +10,7 @@ export const CATEGORIES: Category[] = [
   'Card Draw',
   'Attack Triggers',
   'ETB',
+  'Mana',
 ];
 
 export const QUICKSTART_ID = 'quickstart';

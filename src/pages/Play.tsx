@@ -42,6 +42,7 @@ import {
   BookOpen,
   Swords,
   DoorOpen,
+  Droplet,
 } from "lucide-react";
 
 const CATEGORY_ICONS: Record<Category, React.FC<{ size?: number }>> = {
@@ -51,6 +52,7 @@ const CATEGORY_ICONS: Record<Category, React.FC<{ size?: number }>> = {
   "Card Draw": BookOpen,
   "Attack Triggers": Swords,
   ETB: DoorOpen,
+  Mana: Droplet,
 };
 
 interface MathStep {
