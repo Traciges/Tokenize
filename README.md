@@ -10,14 +10,14 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- 🧮 **Advanced Math Engine:** Support for multipliers, additives, and floor-based logic (e.g., doubling tokens with *Mondrak* or *Doubling Season*).
-- 🔍 **Scryfall Integration:** Instantly search and apply authentic card art to your modifiers and decks.
-- 📦 **Deck Management:** Create, save, and organize specific modifier sets for your favorite Commander or Modern decks.
-- ⚡ **Quickstart Mode:** Jump directly into a game with an ephemeral board state for one-off sessions.
-- 📂 **Categorization:** Group cards by Tokens, Counters, Damage, ETB, and Attack triggers for rapid navigation.
-- 📱 **Mobile First:** Built with Ionic and Capacitor for a native-like experience on iOS, Android, and Web.
+- **Advanced Math Engine:** Support for multipliers, additives, and floor-based logic (e.g., doubling tokens with *Mondrak* or *Doubling Season*).
+- **Scryfall Integration:** Instantly search and apply authentic card art to your modifiers and decks.
+- **Deck Management:** Create, save, and organize specific modifier sets for your favorite Commander or Modern decks.
+- **Quickstart Mode:** Jump directly into a game with an ephemeral board state for one-off sessions.
+- **Categorization:** Group cards by Tokens, Counters, Damage, ETB, and Attack triggers for rapid navigation.
+- **Mobile First:** Built with Ionic and Capacitor for a native-like experience on iOS, Android, and Web.
 
 ---
 
