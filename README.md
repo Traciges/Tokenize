@@ -68,19 +68,24 @@
 
 To run on iOS or Android:
 
-1. **Add platforms:**
+1. **Install Capacitor:**
+   ```bash
+   npx cap init
+   ```
+
+2. **Add platforms:**
    ```bash
    npx cap add ios
    npx cap add android
    ```
 
-2. **Sync changes:**
+3. **Sync changes:**
    ```bash
    npm run build
-   && npx cap sync
+   npx cap sync
    ```
 
-3. **Open in IDE:**
+4. **Open in IDE:**
    ```bash
    npx cap open ios
    npx cap open android
