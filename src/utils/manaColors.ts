@@ -7,15 +7,6 @@ import type { Category } from '../types';
  * Used as fallback when no Scryfall art is available.
  */
 
-/** Official MTG mana color hex values (muted for dark mode) */
-const MANA_COLOR_MAP: Record<string, string> = {
-  W: '#E8E4D4', // Plains — warm white
-  U: '#0E68AB', // Island — deep blue
-  B: '#2B1A10', // Swamp — dark brown/black
-  R: '#D3202A', // Mountain — bold red
-  G: '#00733E', // Forest — rich green
-};
-
 /** Selectable mana colors for the manual picker UI */
 export const MANA_COLORS = [
   { code: 'W', label: 'White', hex: '#E8E4D4' },
@@ -24,6 +15,11 @@ export const MANA_COLORS = [
   { code: 'R', label: 'Red', hex: '#D3202A' },
   { code: 'G', label: 'Green', hex: '#00733E' },
 ] as const;
+
+/** Official MTG mana color hex values — derived from MANA_COLORS (single source of truth) */
+const MANA_COLOR_MAP: Record<string, string> = Object.fromEntries(
+  MANA_COLORS.map((c) => [c.code, c.hex]),
+);
 
 /**
  * Generate a CSS gradient string from an array of MTG color codes.
@@ -56,7 +52,7 @@ export function manaGradient(colors: string[]): string {
   return `linear-gradient(135deg, ${stops.join(', ')})`;
 }
 
-/** Build inline style for Ionic IonItem card art / color background */
+/** Build inline style for Ionic IonItem card art / color background (uses --background CSS var) */
 export function getCardBgStyle(card: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined {
   if (card.artUrl) {
     return {
@@ -67,6 +63,21 @@ export function getCardBgStyle(card: { artUrl?: string; colors?: string[] }): Re
     return {
       '--background': manaGradient(card.colors),
     } as React.CSSProperties;
+  }
+  return undefined;
+}
+
+/** Build inline style for deck cards (standard CSS backgroundImage, for IonCard) */
+export function getDeckBgStyle(deck: { artUrl?: string; colors?: string[] }): React.CSSProperties | undefined {
+  if (deck.artUrl) {
+    return {
+      backgroundImage: `linear-gradient(180deg, rgba(13,17,23,0.25) 0%, rgba(13,17,23,0.85) 70%), url(${deck.artUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
+  }
+  if (deck.colors && deck.colors.length > 0) {
+    return { background: manaGradient(deck.colors) };
   }
   return undefined;
 }

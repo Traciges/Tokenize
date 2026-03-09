@@ -21,9 +21,6 @@ import {
   IonFooter,
   IonFabButton,
   IonInput,
-  IonSelect,
-  IonSelectOption,
-  IonToggle,
 } from "@ionic/react";
 import type { ItemReorderEventDetail } from "@ionic/react";
 import { useParams } from "react-router-dom";
@@ -32,14 +29,12 @@ import {
   remove,
   flash,
   refresh,
-  imageOutline,
-  closeCircle,
 } from "ionicons/icons";
 import { useAppStore } from "../store/useAppStore";
 import { getCardBgStyle, getCategoryClass } from "../utils/manaColors";
-import CardArtSelector from "../components/CardArtSelector";
+import CardFormModal from "../components/CardFormModal";
 import { CATEGORIES, QUICKSTART_ID } from "../types";
-import type { Category, ModifierCard, MathType } from "../types";
+import type { Category, ModifierCard } from "../types";
 import {
   Users,
   CircleDot,
@@ -72,20 +67,6 @@ const sortByOptimization = (a: ModifierCard, b: ModifierCard) => {
   const order = { additive: 1, multiplier: 2, floor: 3 };
   return order[a.mathType] - order[b.mathType];
 };
-const calculateResult = (base: number, effects: ModifierCard[]) => {
-  let current = base;
-  for (const eff of effects) {
-    if (eff.mathType === "multiplier") {
-      current *= eff.value;
-    } else if (eff.mathType === "floor") {
-      current = Math.max(current, eff.value);
-    } else {
-      current += eff.value;
-    }
-  }
-  return current;
-};
-
 const generateMathSteps = (
   base: number,
   effects: ModifierCard[],
@@ -122,7 +103,6 @@ const Play: React.FC = () => {
   const activeBoard = useAppStore((state) => state.activeBoard);
   const updateCardCount = useAppStore((state) => state.updateCardCount);
   const clearActiveBoard = useAppStore((state) => state.clearActiveBoard);
-  const addModifierToDeck = useAppStore((state) => state.addModifierToDeck);
   const updateModifierInDeck = useAppStore(
     (state) => state.updateModifierInDeck,
   );
@@ -186,7 +166,7 @@ const Play: React.FC = () => {
       if (!isLongPress.current) {
         // Short tap → quick inline result
         const effects = getEffectsForCategory(category);
-        const result = calculateResult(1, effects);
+        const result = generateMathSteps(1, effects).at(-1)?.newValue ?? 1;
         setQuickResult({ category, result, effectCount: effects.length });
       }
     },
@@ -200,18 +180,8 @@ const Play: React.FC = () => {
     }
   }, []);
 
-  // Add Card State
+  // Add Card State (Quickstart only)
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showArtSelector, setShowArtSelector] = useState(false);
-  const [cardData, setCardData] = useState({
-    name: "",
-    mathType: "multiplier" as MathType,
-    value: 2,
-    isDynamicValue: false,
-    categories: [] as Category[],
-    artUrl: undefined as string | undefined,
-    colors: undefined as string[] | undefined,
-  });
 
   const mathSteps = useMemo(
     () => generateMathSteps(calculationModal.baseValue, activeEffects),
@@ -219,8 +189,8 @@ const Play: React.FC = () => {
   );
 
   const result = useMemo(
-    () => calculateResult(calculationModal.baseValue, activeEffects),
-    [calculationModal.baseValue, activeEffects],
+    () => mathSteps.at(-1)?.newValue ?? calculationModal.baseValue,
+    [mathSteps, calculationModal.baseValue],
   );
 
   if (!deck)
@@ -248,40 +218,6 @@ const Play: React.FC = () => {
   const autoOptimize = () => {
     const optimized = [...activeEffects].sort(sortByOptimization);
     setActiveEffects(optimized);
-  };
-
-  const handleOpenAdd = () => {
-    setCardData({
-      name: "",
-      mathType: "multiplier",
-      value: 2,
-      isDynamicValue: false,
-      categories: [],
-      artUrl: undefined,
-      colors: undefined,
-    });
-    setShowAddModal(true);
-  };
-
-  const handleSaveCard = () => {
-    if (cardData.name && cardData.categories.length > 0) {
-      addModifierToDeck(deck.id, cardData);
-      setShowAddModal(false);
-    }
-  };
-
-  const handleArtSelect = (
-    artUrl: string,
-    colors: string[],
-    cardName?: string,
-  ) => {
-    setCardData({
-      ...cardData,
-      artUrl: artUrl || undefined,
-      colors: colors.length > 0 ? colors : undefined,
-      ...(cardName ? { name: cardName } : {}),
-    });
-    setShowArtSelector(false);
   };
 
   return (
@@ -434,7 +370,7 @@ const Play: React.FC = () => {
           <div className="custom-fab-container">
             <IonFabButton
               className="custom-fab-main-btn"
-              onClick={handleOpenAdd}
+              onClick={() => setShowAddModal(true)}
             >
               <IonIcon icon={add} style={{ fontSize: "32px" }} />
             </IonFabButton>
@@ -458,137 +394,10 @@ const Play: React.FC = () => {
         </IonFooter>
       )}
 
-      {/* ── Add Card Modal ─────────────────────── */}
-      <IonModal
+      <CardFormModal
         isOpen={showAddModal}
-        onDidDismiss={() => setShowAddModal(false)}
-      >
-        <IonHeader className="mtg-header">
-          <IonToolbar>
-            <IonTitle>Add Card</IonTitle>
-            <IonButtons slot="end">
-              <IonButton onClick={() => setShowAddModal(false)}>
-                Cancel
-              </IonButton>
-            </IonButtons>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding mtg-modal-form">
-          <div className="art-thumbnail-wrapper">
-            <div
-              className={`art-thumbnail-box ${cardData.artUrl ? "has-art" : ""}`}
-              onClick={() => setShowArtSelector(true)}
-            >
-              {cardData.artUrl ? (
-                <>
-                  <img src={cardData.artUrl} alt="Card art" />
-                  <IonButton
-                    fill="clear"
-                    className="art-thumbnail-remove"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCardData({
-                        ...cardData,
-                        artUrl: undefined,
-                        colors: undefined,
-                      });
-                    }}
-                  >
-                    <IonIcon icon={closeCircle} slot="icon-only" />
-                  </IonButton>
-                </>
-              ) : (
-                <>
-                  <IonIcon icon={imageOutline} />
-                  <span>Add Art</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <IonItem>
-            <IonLabel position="stacked">Card Name</IonLabel>
-            <IonInput
-              value={cardData.name}
-              placeholder="Doubling Season"
-              onIonInput={(e) =>
-                setCardData({ ...cardData, name: e.detail.value! })
-              }
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Math Type</IonLabel>
-            <IonSelect
-              value={cardData.mathType}
-              onIonChange={(e) =>
-                setCardData({ ...cardData, mathType: e.detail.value })
-              }
-            >
-              <IonSelectOption value="multiplier">
-                Multiplier (x)
-              </IonSelectOption>
-              <IonSelectOption value="additive">Additive (+)</IonSelectOption>
-              <IonSelectOption value="floor">
-                Minimum Value (Floor)
-              </IonSelectOption>
-            </IonSelect>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Value</IonLabel>
-            <IonInput
-              type="number"
-              value={cardData.value ?? 0}
-              onIonInput={(e) => {
-                const val = parseInt(e.detail.value!);
-                setCardData({ ...cardData, value: isNaN(val) ? 0 : val });
-              }}
-            />
-          </IonItem>
-          <IonItem
-            lines="none"
-            style={{ marginTop: "8px", marginBottom: "8px" }}
-          >
-            <IonLabel>Value can change in-game (Dynamic)</IonLabel>
-            <IonToggle
-              checked={cardData.isDynamicValue}
-              onIonChange={(e) =>
-                setCardData({ ...cardData, isDynamicValue: e.detail.checked })
-              }
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Categories</IonLabel>{" "}
-            <IonSelect
-              multiple={true}
-              value={cardData.categories}
-              onIonChange={(e) =>
-                setCardData({ ...cardData, categories: e.detail.value })
-              }
-            >
-              {CATEGORIES.map((cat) => (
-                <IonSelectOption key={cat} value={cat}>
-                  {cat}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
-
-          <IonButton
-            expand="block"
-            onClick={handleSaveCard}
-            className="ion-margin-top save-btn"
-          >
-            Add Card
-          </IonButton>
-        </IonContent>
-      </IonModal>
-
-      {/* ── Card Art Selector ───────────────────────── */}
-      <CardArtSelector
-        isOpen={showArtSelector}
-        onDismiss={() => setShowArtSelector(false)}
-        initialSearch={cardData.name}
-        onSelect={handleArtSelect}
+        onDismiss={() => setShowAddModal(false)}
+        deckId={deck.id}
       />
 
       {/* ── Calculation Modal ─────────────────────────── */}
@@ -675,7 +484,9 @@ const Play: React.FC = () => {
                       <span className={`effect-math ${eff.mathType}`}>
                         {eff.mathType === "multiplier"
                           ? ` x${eff.value}`
-                          : ` +${eff.value}`}
+                          : eff.mathType === "floor"
+                            ? ` Min ${eff.value}`
+                            : ` +${eff.value}`}
                       </span>
                     </IonLabel>
                     <IonReorder slot="end" />

@@ -21,7 +21,7 @@ import {
   trashOutline,
 } from "ionicons/icons";
 import { useAppStore } from "../store/useAppStore";
-import { manaGradient } from "../utils/manaColors";
+import { getDeckBgStyle } from "../utils/manaColors";
 import CardArtSelector from "../components/CardArtSelector";
 import { QUICKSTART_ID } from "../types";
 import { useHistory } from "react-router-dom";
@@ -38,23 +38,6 @@ const Home: React.FC = () => {
 
   // Filter out the ephemeral quickstart deck from the list if it happens to be in memory
   const displayDecks = decks.filter((d) => d.id !== QUICKSTART_ID);
-
-  const getDeckBgStyle = (deck: {
-    artUrl?: string;
-    colors?: string[];
-  }): React.CSSProperties | undefined => {
-    if (deck.artUrl) {
-      return {
-        backgroundImage: `linear-gradient(180deg, rgba(13,17,23,0.25) 0%, rgba(13,17,23,0.85) 70%), url(${deck.artUrl})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    }
-    if (deck.colors && deck.colors.length > 0) {
-      return { background: manaGradient(deck.colors) };
-    }
-    return undefined;
-  };
 
   const handleDeckArtSelect = (artUrl: string, colors: string[]) => {
     if (editingDeckId) {
