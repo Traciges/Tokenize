@@ -21,6 +21,7 @@ import {
   IonFooter,
   IonFabButton,
   IonInput,
+  IonAlert,
 } from "@ionic/react";
 import type { ItemReorderEventDetail } from "@ionic/react";
 import { useParams } from "react-router-dom";
@@ -29,6 +30,7 @@ import {
   remove,
   flash,
   refresh,
+  trashOutline,
 } from "ionicons/icons";
 import { useAppStore } from "../store/useAppStore";
 import { getCardBgStyle, getCategoryClass } from "../utils/manaColors";
@@ -142,6 +144,17 @@ const Play: React.FC = () => {
   const updateModifierInDeck = useAppStore(
     (state) => state.updateModifierInDeck,
   );
+  const removeModifierFromDeck = useAppStore((state) => state.removeModifierFromDeck);
+  const clearQuickstart = useAppStore((state) => state.clearQuickstart);
+
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [promptHandled, setPromptHandled] = useState(false);
+
+  React.useEffect(() => {
+    if (id === QUICKSTART_ID && deck && deck.modifiers.length > 0 && !promptHandled) {
+      setShowRestorePrompt(true);
+    }
+  }, [id, deck, promptHandled]);
 
   const [calculationModal, setCalculationModal] = useState<{
     isOpen: boolean;
@@ -370,6 +383,20 @@ const Play: React.FC = () => {
                   )}
                 </IonLabel>
                 <div slot="end" className="count-controls">
+                  {deck.id === QUICKSTART_ID && (
+                    <IonButton
+                      fill="outline"
+                      color="danger"
+                      className="count-btn"
+                      style={{ marginRight: '8px', padding: 0 }}
+                      onClick={(e) => {
+                        (e.currentTarget as HTMLIonButtonElement).blur();
+                        removeModifierFromDeck(deck.id, card.id);
+                      }}
+                    >
+                      <IonIcon icon={trashOutline} slot="icon-only" />
+                    </IonButton>
+                  )}
                   <IonButton
                     fill="outline"
                     className="count-btn count-btn-minus"
@@ -402,7 +429,10 @@ const Play: React.FC = () => {
         </IonList>
 
         {deck.id === QUICKSTART_ID && (
-          <div className="custom-fab-container">
+          <div 
+            className="custom-fab-container"
+            style={{ bottom: quickResult ? '90px' : '24px', transition: 'bottom 0.3s ease' }}
+          >
             <IonFabButton
               className="custom-fab-main-btn"
               onClick={() => setShowAddModal(true)}
@@ -433,6 +463,32 @@ const Play: React.FC = () => {
         isOpen={showAddModal}
         onDismiss={() => setShowAddModal(false)}
         deckId={deck.id}
+      />
+
+      <IonAlert
+        isOpen={showRestorePrompt}
+        onDidDismiss={() => {
+          setShowRestorePrompt(false);
+          setPromptHandled(true);
+        }}
+        header="Restore Session"
+        message={`Do you want to restore your previous Quickstart session (${deck?.modifiers.length} cards${deck?.lastUpdated ? `, last updated: ${new Date(deck.lastUpdated).toLocaleTimeString()}` : ''})?`}
+        buttons={[
+          {
+            text: "No, Start Fresh",
+            role: "cancel",
+            handler: () => {
+              clearQuickstart();
+              setPromptHandled(true);
+            },
+          },
+          {
+            text: "Yes, Restore",
+            handler: () => {
+              setPromptHandled(true);
+            },
+          },
+        ]}
       />
 
       {/* ── Calculation Modal ─────────────────────────── */}

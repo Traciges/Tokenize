@@ -15,6 +15,7 @@ interface StoreState extends AppState {
   updateCardCount: (cardId: string, delta: number) => void;
   clearActiveBoard: () => void;
   updateDeckArt: (deckId: string, artUrl?: string, colors?: string[]) => void;
+  clearQuickstart: () => void;
 }
 
 const storage = {
@@ -38,7 +39,7 @@ export const useAppStore = create<StoreState>()(
 
       addDeck: (name) =>
         set((state) => ({
-          decks: [...state.decks, { id: crypto.randomUUID(), name, modifiers: [] }],
+          decks: [...state.decks, { id: crypto.randomUUID(), name, modifiers: [], lastUpdated: Date.now() }],
         })),
 
       initQuickstart: () =>
@@ -63,7 +64,7 @@ export const useAppStore = create<StoreState>()(
         set((state) => ({
           decks: state.decks.map((d) =>
             d.id === deckId
-              ? { ...d, modifiers: [...d.modifiers, { ...card, id: crypto.randomUUID() }] }
+              ? { ...d, modifiers: [...d.modifiers, { ...card, id: crypto.randomUUID() }], lastUpdated: Date.now() }
               : d
           ),
         })),
@@ -77,6 +78,7 @@ export const useAppStore = create<StoreState>()(
                   modifiers: d.modifiers.map((m) =>
                     m.id === cardId ? { ...m, ...card } : m
                   ),
+                  lastUpdated: Date.now(),
                 }
               : d
           ),
@@ -89,7 +91,7 @@ export const useAppStore = create<StoreState>()(
           return {
             decks: state.decks.map((d) =>
               d.id === deckId
-                ? { ...d, modifiers: d.modifiers.filter((c) => c.id !== cardId) }
+                ? { ...d, modifiers: d.modifiers.filter((c) => c.id !== cardId), lastUpdated: Date.now() }
                 : d
             ),
             activeBoard: restBoard,
@@ -101,30 +103,47 @@ export const useAppStore = create<StoreState>()(
           const currentCount = state.activeBoard[cardId] || 0;
           const nextCount = Math.max(0, currentCount + delta);
           if (nextCount === currentCount) return state;
+          
+          const deck = state.decks.find(d => d.modifiers.some(m => m.id === cardId));
+          const newDecks = deck ? state.decks.map(d => d.id === deck.id ? { ...d, lastUpdated: Date.now() } : d) : state.decks;
+
           return {
             activeBoard: { ...state.activeBoard, [cardId]: nextCount },
+            decks: newDecks,
           };
         }),
 
       clearActiveBoard: () =>
-        set(() => ({
+        set((state) => ({
           activeBoard: {},
+          decks: state.decks.map(d => ({ ...d, lastUpdated: Date.now() })),
         })),
 
       updateDeckArt: (deckId, artUrl, colors) =>
         set((state) => ({
           decks: state.decks.map((d) =>
-            d.id === deckId ? { ...d, artUrl, colors } : d
+            d.id === deckId ? { ...d, artUrl, colors, lastUpdated: Date.now() } : d
           ),
         })),
+
+      clearQuickstart: () =>
+        set((state) => {
+          const restBoard = { ...state.activeBoard };
+          const quickDeck = state.decks.find((d) => d.id === QUICKSTART_ID);
+          if (quickDeck) {
+            quickDeck.modifiers.forEach((m) => delete restBoard[m.id]);
+          }
+          return {
+            decks: state.decks.map((d) =>
+              d.id === QUICKSTART_ID ? { ...d, modifiers: [], lastUpdated: undefined } : d
+            ),
+            activeBoard: restBoard,
+          };
+        }),
     }),
     {
       name: 'mtg-toolbox-storage',
       storage: createJSONStorage(() => storage),
-      partialize: (state) => ({
-        ...state,
-        decks: state.decks.filter((d) => d.id !== QUICKSTART_ID),
-      }),
     }
   )
 );

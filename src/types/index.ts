@@ -32,6 +32,7 @@ export interface Deck {
   modifiers: ModifierCard[];
   artUrl?: string;       // Scryfall art_crop URL (e.g. Commander art)
   colors?: string[];     // MTG color identity
+  lastUpdated?: number;
 }
 
 export interface AppState {
