@@ -151,8 +151,12 @@ const Play: React.FC = () => {
   const [promptHandled, setPromptHandled] = useState(false);
 
   React.useEffect(() => {
-    if (id === QUICKSTART_ID && deck && deck.modifiers.length > 0 && !promptHandled) {
-      setShowRestorePrompt(true);
+    if (id === QUICKSTART_ID && deck && !promptHandled) {
+      if (deck.modifiers.length > 0) {
+        setShowRestorePrompt(true);
+      } else {
+        setPromptHandled(true);
+      }
     }
   }, [id, deck, promptHandled]);
 
