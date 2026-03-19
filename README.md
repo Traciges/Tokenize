@@ -10,7 +10,7 @@
 
 ---
 
-## Features
+## ✨ Key Features  
 
 - **Quick Results** — Tap any category button (Tokens, Damage, Mana, etc.) to instantly see the calculated total for your current board state. Swipe the result footer away to dismiss it.
 - **Full Calculation View** — Long-press a category to open a detailed breakdown with reorderable effects and step-by-step math. Drag to change order or hit Optimize to let the app find the best ordering automatically.
@@ -23,7 +23,7 @@
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Library |
 |---|---|
@@ -36,7 +36,7 @@
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -60,7 +60,7 @@ npm run build
 
 ---
 
-## Mobile (Capacitor)
+## 📱 Mobile Deployment (Capacitor)
 
 ```bash
 npm run build
@@ -70,7 +70,7 @@ npx cap open ios      # or android
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 src/
@@ -85,19 +85,7 @@ src/
 
 ---
 
-## Versioning
-
-The current version is defined in `src/version.ts`:
-
-```ts
-export const APP_VERSION = "1.1.0";
-```
-
-Bump this value before each release. The version is displayed in the in-app Help sheet.
-
----
-
-## License
+## ⚖️ License
 
 MIT — see `LICENSE`.
 
