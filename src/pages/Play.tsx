@@ -20,7 +20,6 @@ import {
   IonReorder,
   IonFooter,
   IonFabButton,
-  IonInput,
   IonAlert,
 } from "@ionic/react";
 import type { ItemReorderEventDetail } from "@ionic/react";
@@ -154,6 +153,9 @@ const Play: React.FC = () => {
   const [countAlertOpen, setCountAlertOpen] = useState(false);
   const [countAlertCardId, setCountAlertCardId] = useState<string | null>(null);
 
+  const [valueAlertOpen, setValueAlertOpen] = useState(false);
+  const [valueAlertCardId, setValueAlertCardId] = useState<string | null>(null);
+
   React.useEffect(() => {
     if (id === QUICKSTART_ID && deck && !promptHandled) {
       if (deck.modifiers.length > 0) {
@@ -178,6 +180,38 @@ const Play: React.FC = () => {
     result: number;
     effectCount: number;
   } | null>(null);
+
+  // Footer swipe state
+  const swipeStartX = useRef<number | null>(null);
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  const [footerSwipeX, setFooterSwipeX] = useState(0);
+  const [footerDismissing, setFooterDismissing] = useState(false);
+
+  const SWIPE_THRESHOLD = 80;
+
+  const handleFooterTouchStart = (e: React.TouchEvent) => {
+    swipeStartX.current = e.touches[0].clientX;
+  };
+
+  const handleFooterTouchMove = (e: React.TouchEvent) => {
+    if (swipeStartX.current === null) return;
+    const dx = e.touches[0].clientX - swipeStartX.current;
+    if (dx > 0) setFooterSwipeX(dx);
+  };
+
+  const handleFooterTouchEnd = () => {
+    if (footerSwipeX >= SWIPE_THRESHOLD) {
+      setFooterDismissing(true);
+      setTimeout(() => {
+        setQuickResult(null);
+        setFooterSwipeX(0);
+        setFooterDismissing(false);
+      }, 250);
+    } else {
+      setFooterSwipeX(0);
+    }
+    swipeStartX.current = null;
+  };
 
   // Long press detection
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -348,37 +382,18 @@ const Play: React.FC = () => {
                 <IonLabel>
                   <h2>{card.name}</h2>
                   {card.isDynamicValue ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
-                        Value:
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Value</span>
+                      <span
+                        className="count-value count-active"
+                        onClick={() => {
+                          setValueAlertCardId(card.id);
+                          setValueAlertOpen(true);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {card.value}
                       </span>
-                      <IonInput
-                        type="number"
-                        value={card.value}
-                        onIonInput={(e) => {
-                          const val = parseInt(e.detail.value!, 10);
-                          if (!isNaN(val)) {
-                            updateModifierInDeck(deck.id, card.id, {
-                              value: val,
-                            });
-                          }
-                        }}
-                        style={{
-                          width: "60px",
-                          border: "1px solid var(--mtg-border)",
-                          borderRadius: "4px",
-                          padding: "0 8px",
-                          background: "rgba(0, 0, 0, 0.4)",
-                          color: "var(--mtg-text-primary)",
-                        }}
-                      />
                     </div>
                   ) : (
                     <p>
@@ -457,6 +472,38 @@ const Play: React.FC = () => {
       </IonContent>
 
       <IonAlert
+        isOpen={valueAlertOpen}
+        onDidDismiss={() => {
+          setValueAlertOpen(false);
+          setValueAlertCardId(null);
+        }}
+        header="Set Value"
+        message="Enter the card's current value"
+        inputs={[
+          {
+            name: 'value',
+            type: 'number',
+            value: valueAlertCardId != null
+              ? (deck.modifiers.find(m => m.id === valueAlertCardId)?.value ?? 0)
+              : 0,
+            placeholder: '0',
+          },
+        ]}
+        buttons={[
+          { text: 'Cancel', role: 'cancel' },
+          {
+            text: 'Set',
+            handler: (data) => {
+              if (valueAlertCardId != null) {
+                const val = parseInt(data.value, 10);
+                if (!isNaN(val)) updateModifierInDeck(deck.id, valueAlertCardId, { value: val });
+              }
+            },
+          },
+        ]}
+      />
+
+      <IonAlert
         isOpen={countAlertOpen}
         onDidDismiss={() => {
           setCountAlertOpen(false);
@@ -491,11 +538,20 @@ const Play: React.FC = () => {
       {quickResult && (
         <IonFooter>
           <div
-            className="sticky-result-footer quick-result-footer"
+            ref={footerRef}
+            className={`sticky-result-footer quick-result-footer${footerDismissing ? ' footer-swipe-out' : ''}`}
+            style={{
+              transform: footerDismissing ? undefined : `translateX(${footerSwipeX}px)`,
+              transition: footerSwipeX === 0 || footerDismissing ? 'transform 0.25s ease' : 'none',
+              opacity: footerDismissing ? undefined : Math.max(0, 1 - footerSwipeX / 200),
+            }}
             onClick={() =>
-              quickResult.effectCount > 0 &&
+              quickResult.effectCount > 0 && footerSwipeX === 0 &&
               handleActionClick(quickResult.category)
             }
+            onTouchStart={handleFooterTouchStart}
+            onTouchMove={handleFooterTouchMove}
+            onTouchEnd={handleFooterTouchEnd}
           >
             <span className="footer-label">{quickResult.category} Total</span>
             <span className="footer-value">{quickResult.result}</span>

@@ -15,6 +15,14 @@ import {
 import { colorPalette } from 'ionicons/icons';
 import { searchCards } from '../services/scryfall';
 import { MANA_COLORS } from '../utils/manaColors';
+import WIcon from '../../assets/W.webp';
+import UIcon from '../../assets/U.webp';
+import BIcon from '../../assets/B.webp';
+import RIcon from '../../assets/R.webp';
+import GIcon from '../../assets/G.webp';
+import CIcon from '../../assets/C.webp';
+
+const MANA_ICONS: Record<string, string> = { W: WIcon, U: UIcon, B: BIcon, R: RIcon, G: GIcon, C: CIcon };
 import type { ScryfallCardResult } from '../types';
 
 interface CardArtSelectorProps {
@@ -163,12 +171,11 @@ const CardArtSelector: React.FC<CardArtSelectorProps> = ({
                 <button
                   key={c.code}
                   className={`mana-orb ${selectedColors.includes(c.code) ? 'selected' : ''}`}
-                  style={{ background: c.hex }}
                   onClick={() => toggleColor(c.code)}
                   title={c.label}
                   type="button"
                 >
-                  <span className="mana-orb-label">{c.code}</span>
+                  <img src={MANA_ICONS[c.code]} alt={c.label} className="mana-orb-icon" />
                 </button>
               ))}
             </div>

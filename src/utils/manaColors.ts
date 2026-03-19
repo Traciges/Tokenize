@@ -11,9 +11,10 @@ import type { Category } from '../types';
 export const MANA_COLORS = [
   { code: 'W', label: 'White', hex: '#E8E4D4' },
   { code: 'U', label: 'Blue', hex: '#0E68AB' },
-  { code: 'B', label: 'Black', hex: '#2B1A10' },
+  { code: 'B', label: 'Black', hex: '#0a0a0a' },
   { code: 'R', label: 'Red', hex: '#D3202A' },
   { code: 'G', label: 'Green', hex: '#00733E' },
+  { code: 'C', label: 'Colorless', hex: '#a0a0a0' },
 ] as const;
 
 /** Official MTG mana color hex values — derived from MANA_COLORS (single source of truth) */

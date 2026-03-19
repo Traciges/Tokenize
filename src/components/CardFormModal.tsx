@@ -15,6 +15,7 @@ import {
   IonSelectOption,
   IonToggle,
   IonIcon,
+  IonToast,
 } from '@ionic/react';
 import { imageOutline, closeCircle } from 'ionicons/icons';
 import { useAppStore } from '../store/useAppStore';
@@ -33,6 +34,7 @@ interface CardFormModalProps {
 const CardFormModal: React.FC<CardFormModalProps> = ({ isOpen, onDismiss, deckId, editingCard }) => {
   const { addModifierToDeck, updateModifierInDeck } = useAppStore();
   const [showArtSelector, setShowArtSelector] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const [cardData, setCardData] = useState({
@@ -74,7 +76,14 @@ const CardFormModal: React.FC<CardFormModalProps> = ({ isOpen, onDismiss, deckId
   }
 
   const handleSave = () => {
-    if (!cardData.name || cardData.categories.length === 0) return;
+    if (!cardData.name) {
+      setToastMessage('Please enter a card name.');
+      return;
+    }
+    if (cardData.categories.length === 0) {
+      setToastMessage('Please select at least one category.');
+      return;
+    }
     if (editingCard) {
       updateModifierInDeck(deckId, editingCard.id, cardData);
     } else {
@@ -196,6 +205,15 @@ const CardFormModal: React.FC<CardFormModalProps> = ({ isOpen, onDismiss, deckId
         onDismiss={() => setShowArtSelector(false)}
         initialSearch={cardData.name}
         onSelect={handleArtSelect}
+      />
+
+      <IonToast
+        isOpen={toastMessage !== null}
+        message={toastMessage ?? ''}
+        duration={2500}
+        position="top"
+        color="warning"
+        onDidDismiss={() => setToastMessage(null)}
       />
     </>
   );
