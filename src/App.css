@@ -46,7 +46,7 @@ ion-content::part(background) {
   font-size: 1.6rem !important;
   font-weight: 900 !important;
   letter-spacing: 0.08em !important;
-  background: linear-gradient(135deg, var(--mtg-gold-bright) 0%, var(--mtg-gold) 60%, #c47c2a 100%);
+  background: var(--mtg-gold-bright);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -64,17 +64,6 @@ ion-content::part(background) {
   align-items: baseline;
   gap: 10px;
   margin-bottom: 4px;
-}
-
-.help-app-name {
-  font-family: var(--mtg-font-display);
-  font-size: 1.6rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  background: linear-gradient(135deg, var(--mtg-gold-bright) 0%, var(--mtg-gold) 60%, #c47c2a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .help-version {

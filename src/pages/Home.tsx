@@ -270,7 +270,7 @@ const Home: React.FC = () => {
       >
         <IonContent className="ion-padding help-modal-content">
           <div className="help-title-row">
-            <span className="help-app-name">Tokenize</span>
+            <span className="home-title">Tokenize</span>
             <span className="help-version">v{APP_VERSION}</span>
           </div>
 
