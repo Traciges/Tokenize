@@ -140,6 +140,7 @@ const Play: React.FC = () => {
   const deck = useAppStore((state) => state.decks.find((d) => d.id === id));
   const activeBoard = useAppStore((state) => state.activeBoard);
   const updateCardCount = useAppStore((state) => state.updateCardCount);
+  const setCardCount = useAppStore((state) => state.setCardCount);
   const clearActiveBoard = useAppStore((state) => state.clearActiveBoard);
   const updateModifierInDeck = useAppStore(
     (state) => state.updateModifierInDeck,
@@ -149,6 +150,9 @@ const Play: React.FC = () => {
 
   const [showRestorePrompt, setShowRestorePrompt] = useState(false);
   const [promptHandled, setPromptHandled] = useState(false);
+
+  const [countAlertOpen, setCountAlertOpen] = useState(false);
+  const [countAlertCardId, setCountAlertCardId] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (id === QUICKSTART_ID && deck && !promptHandled) {
@@ -413,6 +417,11 @@ const Play: React.FC = () => {
                   </IonButton>
                   <span
                     className={`count-value ${count === 0 ? "count-zero" : "count-active"}`}
+                    onClick={() => {
+                      setCountAlertCardId(card.id);
+                      setCountAlertOpen(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
                   >
                     {count}
                   </span>
@@ -446,6 +455,37 @@ const Play: React.FC = () => {
           </div>
         )}
       </IonContent>
+
+      <IonAlert
+        isOpen={countAlertOpen}
+        onDidDismiss={() => {
+          setCountAlertOpen(false);
+          setCountAlertCardId(null);
+        }}
+        header="Set Count"
+        message="Enter exact card count"
+        inputs={[
+          {
+            name: 'count',
+            type: 'number',
+            min: 0,
+            value: countAlertCardId != null ? (activeBoard[countAlertCardId] || 0) : 0,
+            placeholder: '0',
+          },
+        ]}
+        buttons={[
+          { text: 'Cancel', role: 'cancel' },
+          {
+            text: 'Set',
+            handler: (data) => {
+              if (countAlertCardId != null) {
+                const val = parseInt(data.count, 10);
+                if (!isNaN(val)) setCardCount(countAlertCardId, val);
+              }
+            },
+          },
+        ]}
+      />
 
       {/* Quick Result Footer */}
       {quickResult && (

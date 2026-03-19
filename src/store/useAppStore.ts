@@ -13,6 +13,7 @@ interface StoreState extends AppState {
   updateModifierInDeck: (deckId: string, cardId: string, card: Partial<ModifierCard>) => void;
   removeModifierFromDeck: (deckId: string, cardId: string) => void;
   updateCardCount: (cardId: string, delta: number) => void;
+  setCardCount: (cardId: string, count: number) => void;
   clearActiveBoard: () => void;
   updateDeckArt: (deckId: string, artUrl?: string, colors?: string[]) => void;
   clearQuickstart: () => void;
@@ -107,6 +108,19 @@ export const useAppStore = create<StoreState>()(
           const deck = state.decks.find(d => d.modifiers.some(m => m.id === cardId));
           const newDecks = deck ? state.decks.map(d => d.id === deck.id ? { ...d, lastUpdated: Date.now() } : d) : state.decks;
 
+          return {
+            activeBoard: { ...state.activeBoard, [cardId]: nextCount },
+            decks: newDecks,
+          };
+        }),
+
+      setCardCount: (cardId, count) =>
+        set((state) => {
+          const nextCount = Math.max(0, Math.floor(count));
+          const deck = state.decks.find(d => d.modifiers.some(m => m.id === cardId));
+          const newDecks = deck
+            ? state.decks.map(d => d.id === deck.id ? { ...d, lastUpdated: Date.now() } : d)
+            : state.decks;
           return {
             activeBoard: { ...state.activeBoard, [cardId]: nextCount },
             decks: newDecks,
